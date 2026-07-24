@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false) @map("email_verified")
+  image         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  sessions            Session[]
+  accounts            Account[]
+  categories          Category[]
+  transactions        Transaction[]
+  subscriptions       Subscription[]
+  subscriptionTags    SubscriptionTag[]
+  entidadesFinancieras EntidadFinanciera[]
+  formasPago          FormaPago[]
+
+  @@map("tbl_user")
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
+}
+
+model Category {
+  id        String       @id @default(cuid())
+  name      String
+  type      CategoryType
+  icon      String       @default("Tag")
+  userId    String?      @map("user_id")
+  user      User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  transactions Transaction[]
+
+  @@unique([name, userId])
+  @@map("tbl_category")
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  amount      Decimal  @db.Decimal(10, 2)
+  date        DateTime @db.Date
+  description String?  @db.VarChar(255)
+  categoryId  String   @map("category_id")
+  category    Category @relation(fields: [categoryId], references: [id])
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("tbl_transaction")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("tbl_session")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  userId                String    @map("user_id")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@unique([providerId, accountId])
+  @@map("tbl_account")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("tbl_verification")
+}
+
+enum SubscriptionFrequency {
+  MONTHLY
+  YEARLY
+  QUARTERLY
+  BIWEEKLY
+  WEEKLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+}
+
+model SubscriptionTag {
+  id            String         @id @default(cuid())
+  name          String
+  color         String         @default("#6b7280")
+  userId        String         @map("user_id")
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  @@unique([name, userId])
+  @@map("tbl_subscription_tag")
+}
+
+model Subscription {
+  id              String               @id @default(cuid())
+  name            String
+  amount          Decimal              @db.Decimal(10, 2)
+  nextPaymentDate DateTime             @map("next_payment_date") @db.Date
+  frequency       SubscriptionFrequency @default(MONTHLY)
+  status          SubscriptionStatus    @default(ACTIVE)
+  userId          String               @map("user_id")
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  formaPagoId     String               @map("forma_pago_id")
+  formaPago       FormaPago            @relation(fields: [formaPagoId], references: [id], onDelete: Restrict)
+  tags            SubscriptionTag[]
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+
+  @@map("tbl_subscription")
+}
+
+enum FormaPagoTipo {
+  CREDIT
+  DEBIT
+  CASH
+}
+
+model EntidadFinanciera {
+  id              String       @id @default(cuid())
+  nombre          String
+  gradienteInicio String       @map("gradiente_inicio")
+  gradienteFin    String       @map("gradiente_fin")
+  formatoNumero   String?      @map("formato_numero")
+  esSistema       Boolean      @default(false) @map("es_sistema")
+  userId          String?      @map("user_id")
+  user            User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  formasPago      FormaPago[]
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  @@unique([nombre, userId])
+  @@map("tbl_entidad_financiera")
+}
+
+model FormaPago {
+  id                  String              @id @default(cuid())
+  nombre              String
+  tipo                FormaPagoTipo
+  numeroEncriptado    String?             @map("numero_encriptado")
+  ultimosCuatro       String?             @db.VarChar(4) @map("ultimos_cuatro")
+  publico             Boolean             @default(false)
+  gradienteInicio     String              @map("gradiente_inicio")
+  gradienteFin        String              @map("gradiente_fin")
+  entidadFinancieraId String?             @map("entidad_financiera_id")
+  entidadFinanciera   EntidadFinanciera?  @relation(fields: [entidadFinancieraId], references: [id], onDelete: Restrict)
+  userId              String              @map("user_id")
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions       Subscription[]
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+
+  @@map("tbl_forma_pago")
+}

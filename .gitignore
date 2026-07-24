@@ -1,0 +1,15 @@
+node_modules/
+dist/
+dist-ssr/
+.env
+*.log
+bun.lockb
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# Turbo
+.turbo

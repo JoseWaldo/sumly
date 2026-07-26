@@ -42,6 +42,10 @@ Skill orquestadora que guia todo el ciclo de vida de un cambio de codigo: desde 
    ### Archivos a crear
    - `ruta/nuevo-archivo.ts` — <proposito>
 
+   ### Documentacion a actualizar
+   - `CONTEXT.md` — <que seccion/cambio>
+   - `AGENTS.md` — <que seccion/cambio> (o "No requiere cambios")
+
    ### Orden de ejecucion
    1. <primer paso>
    2. <segundo paso>
@@ -104,7 +108,12 @@ Skill orquestadora que guia todo el ciclo de vida de un cambio de codigo: desde 
    - No commitees nada todavia — acumula los cambios en el working tree.
    - Si encontras un obstaculo no previsto en el plan, informalo al usuario y propon ajustes.
 
-3. **Al terminar**, hace un resumen de lo implementado y confirma que coincide con el plan aprobado.
+3. **Actualizar documentacion** al terminar la implementacion:
+   - Revisa si el cambio afecta a `CONTEXT.md`: nuevas historias de usuario, cambios en stack tecnologico, nuevas rutas API, o cambio de estado de funcionalidades existentes. Si algo cambio, actualizalo.
+   - Revisa si el cambio afecta a `AGENTS.md`: nuevas convenciones, patrones de arquitectura, checklists, o estandares que los agentes deban seguir en el futuro.
+   - Si no hay nada que actualizar, indicarlo explicitamente ("Documentacion no requiere cambios").
+
+4. **Al terminar**, hace un resumen de lo implementado y confirma que coincide con el plan aprobado.
 
 ---
 
@@ -173,9 +182,9 @@ Fase 2: Critica (grill-me) ◄─── [ajustar plan si es necesario]
 Fase 3: Crear rama (tipo/descripcion)
     │
     ▼
-Fase 4: Ejecucion
-    │
-    ▼
+Fase 4: Ejecucion + Actualizar docs
+     │
+     ▼
 Fase 5: Type check + Build ◄─── [corregir errores si falla]
     │
     ▼ [todo verde]

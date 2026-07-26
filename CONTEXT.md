@@ -163,9 +163,9 @@ apps/
 
 | ID | Historia | Estado |
 |----|----------|--------|
-| HU-48 | Manifest e íconos para instalación | Hecho |
-| HU-49 | Service worker con cacheo de assets estáticos y Google Fonts | Hecho |
-| HU-50 | Funcionamiento offline (cacheo de respuestas API, cola de operaciones) | Pendiente |
+| HU-51 | Manifest e íconos para instalación | Hecho |
+| HU-52 | Service worker con cacheo de assets estáticos y Google Fonts | Hecho |
+| HU-53 | Funcionamiento offline (cacheo de respuestas API, cola de operaciones) | Pendiente |
 
 ---
 

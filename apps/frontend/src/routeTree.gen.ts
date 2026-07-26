@@ -9,23 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
-import { Route as DashboardSuscripcionesRouteImport } from './routes/dashboard/suscripciones'
-import { Route as DashboardPerfilRouteImport } from './routes/dashboard/perfil'
-import { Route as DashboardIngresosRouteImport } from './routes/dashboard/ingresos'
-import { Route as DashboardGastosRouteImport } from './routes/dashboard/gastos'
-import { Route as DashboardFormasDePagoRouteImport } from './routes/dashboard/formas-de-pago'
-import { Route as DashboardEntidadesFinancierasRouteImport } from './routes/dashboard/entidades-financieras'
-import { Route as DashboardCategoriasRouteImport } from './routes/dashboard/categorias'
-import { Route as AuthRegisterRouteImport } from './routes/auth/register'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AuthRegisterRouteImport } from './routes/auth/register'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as DashboardCategoriasRouteImport } from './routes/dashboard/categorias'
+import { Route as DashboardEntidadesFinancierasRouteImport } from './routes/dashboard/entidades-financieras'
+import { Route as DashboardFormasDePagoRouteImport } from './routes/dashboard/formas-de-pago'
+import { Route as DashboardGastosRouteImport } from './routes/dashboard/gastos'
+import { Route as DashboardIngresosRouteImport } from './routes/dashboard/ingresos'
+import { Route as DashboardPerfilRouteImport } from './routes/dashboard/perfil'
+import { Route as DashboardSuscripcionesRouteImport } from './routes/dashboard/suscripciones'
 
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -33,39 +33,29 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AuthRoute,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardSuscripcionesRoute = DashboardSuscripcionesRouteImport.update({
-  id: '/suscripciones',
-  path: '/suscripciones',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardPerfilRoute = DashboardPerfilRouteImport.update({
-  id: '/perfil',
-  path: '/perfil',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardIngresosRoute = DashboardIngresosRouteImport.update({
-  id: '/ingresos',
-  path: '/ingresos',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardGastosRoute = DashboardGastosRouteImport.update({
-  id: '/gastos',
-  path: '/gastos',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardFormasDePagoRoute = DashboardFormasDePagoRouteImport.update({
-  id: '/formas-de-pago',
-  path: '/formas-de-pago',
+const DashboardCategoriasRoute = DashboardCategoriasRouteImport.update({
+  id: '/categorias',
+  path: '/categorias',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardEntidadesFinancierasRoute =
@@ -74,20 +64,30 @@ const DashboardEntidadesFinancierasRoute =
     path: '/entidades-financieras',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardCategoriasRoute = DashboardCategoriasRouteImport.update({
-  id: '/categorias',
-  path: '/categorias',
+const DashboardFormasDePagoRoute = DashboardFormasDePagoRouteImport.update({
+  id: '/formas-de-pago',
+  path: '/formas-de-pago',
   getParentRoute: () => DashboardRoute,
 } as any)
-const AuthRegisterRoute = AuthRegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => AuthRoute,
+const DashboardGastosRoute = DashboardGastosRouteImport.update({
+  id: '/gastos',
+  path: '/gastos',
+  getParentRoute: () => DashboardRoute,
 } as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => AuthRoute,
+const DashboardIngresosRoute = DashboardIngresosRouteImport.update({
+  id: '/ingresos',
+  path: '/ingresos',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardPerfilRoute = DashboardPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSuscripcionesRoute = DashboardSuscripcionesRouteImport.update({
+  id: '/suscripciones',
+  path: '/suscripciones',
+  getParentRoute: () => DashboardRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -190,11 +190,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -204,60 +204,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/register': {
+      id: '/auth/register'
+      path: '/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/dashboard/': {
       id: '/dashboard/'
       path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/suscripciones': {
-      id: '/dashboard/suscripciones'
-      path: '/suscripciones'
-      fullPath: '/dashboard/suscripciones'
-      preLoaderRoute: typeof DashboardSuscripcionesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/perfil': {
-      id: '/dashboard/perfil'
-      path: '/perfil'
-      fullPath: '/dashboard/perfil'
-      preLoaderRoute: typeof DashboardPerfilRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/ingresos': {
-      id: '/dashboard/ingresos'
-      path: '/ingresos'
-      fullPath: '/dashboard/ingresos'
-      preLoaderRoute: typeof DashboardIngresosRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/gastos': {
-      id: '/dashboard/gastos'
-      path: '/gastos'
-      fullPath: '/dashboard/gastos'
-      preLoaderRoute: typeof DashboardGastosRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/formas-de-pago': {
-      id: '/dashboard/formas-de-pago'
-      path: '/formas-de-pago'
-      fullPath: '/dashboard/formas-de-pago'
-      preLoaderRoute: typeof DashboardFormasDePagoRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/entidades-financieras': {
-      id: '/dashboard/entidades-financieras'
-      path: '/entidades-financieras'
-      fullPath: '/dashboard/entidades-financieras'
-      preLoaderRoute: typeof DashboardEntidadesFinancierasRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/categorias': {
@@ -267,19 +239,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardCategoriasRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/auth/register': {
-      id: '/auth/register'
-      path: '/register'
-      fullPath: '/auth/register'
-      preLoaderRoute: typeof AuthRegisterRouteImport
-      parentRoute: typeof AuthRoute
+    '/dashboard/entidades-financieras': {
+      id: '/dashboard/entidades-financieras'
+      path: '/entidades-financieras'
+      fullPath: '/dashboard/entidades-financieras'
+      preLoaderRoute: typeof DashboardEntidadesFinancierasRouteImport
+      parentRoute: typeof DashboardRoute
     }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof AuthRoute
+    '/dashboard/formas-de-pago': {
+      id: '/dashboard/formas-de-pago'
+      path: '/formas-de-pago'
+      fullPath: '/dashboard/formas-de-pago'
+      preLoaderRoute: typeof DashboardFormasDePagoRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/gastos': {
+      id: '/dashboard/gastos'
+      path: '/gastos'
+      fullPath: '/dashboard/gastos'
+      preLoaderRoute: typeof DashboardGastosRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/ingresos': {
+      id: '/dashboard/ingresos'
+      path: '/ingresos'
+      fullPath: '/dashboard/ingresos'
+      preLoaderRoute: typeof DashboardIngresosRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/perfil': {
+      id: '/dashboard/perfil'
+      path: '/perfil'
+      fullPath: '/dashboard/perfil'
+      preLoaderRoute: typeof DashboardPerfilRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/suscripciones': {
+      id: '/dashboard/suscripciones'
+      path: '/suscripciones'
+      fullPath: '/dashboard/suscripciones'
+      preLoaderRoute: typeof DashboardSuscripcionesRouteImport
+      parentRoute: typeof DashboardRoute
     }
   }
 }

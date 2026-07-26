@@ -7,6 +7,7 @@ export const createTransactionSchema = z.object({
   }),
   description: z.string().max(255).optional(),
   categoryId: z.string().min(1, "La categoria es requerida"),
+  formaPagoId: z.string().min(1, "La forma de pago es requerida"),
 });
 
 export const updateTransactionSchema = z.object({
@@ -19,6 +20,7 @@ export const updateTransactionSchema = z.object({
     .optional(),
   description: z.string().max(255).optional(),
   categoryId: z.string().min(1, "La categoria es requerida").optional(),
+  formaPagoId: z.string().min(1, "La forma de pago es requerida").optional(),
 });
 
 export type CreateTransactionDTO = z.infer<typeof createTransactionSchema>;

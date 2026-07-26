@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useCallback } from "react";
-import { Plus, Search, X } from "lucide-react";
+import { useState, useCallback, useMemo } from "react";
+import { Plus, Search, X, FilterX, SlidersHorizontal, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { FormaPagoCard } from "@/features/formas-pago/components/forma-pago-card";
 import { FormaPagoCardSkeleton } from "@/features/formas-pago/components/forma-pago-card-skeleton";
 import { FormaPagoForm } from "@/features/formas-pago/components/forma-pago-form";
 import { FormaPagoDialog } from "@/features/formas-pago/components/forma-pago-dialog";
 import { DeleteFormaPagoDialog } from "@/features/formas-pago/components/delete-forma-pago-dialog";
+import { FilterSheet } from "@/components/ui/filter-sheet";
 import {
   useFormasPago,
   useCreateFormaPago,
@@ -28,9 +30,14 @@ function FormasPagoPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingFormaPago, setEditingFormaPago] = useState<FormaPago | null>(null);
   const [deletingFormaPago, setDeletingFormaPago] = useState<FormaPago | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<string>("tipo");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const { data: paginated, isLoading } = useFormasPago({
     search: search || undefined,
+    sortBy,
+    sortDir,
     page,
     limit: PAGE_SIZE,
   });
@@ -47,6 +54,29 @@ function FormasPagoPage() {
     setSearch(value);
     setPage(1);
   }, []);
+
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(column);
+      setSortDir("asc");
+    }
+    setPage(1);
+  };
+
+  const clearFilters = () => {
+    setSearch("");
+    setSortBy("tipo");
+    setSortDir("asc");
+    setPage(1);
+  };
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (sortBy !== "tipo" || sortDir !== "asc") count++;
+    return count;
+  }, [sortBy, sortDir]);
 
   function openCreate() {
     setEditingFormaPago(null);
@@ -83,6 +113,11 @@ function FormasPagoPage() {
     }
   }
 
+  const sortOptions = [
+    { value: "tipo", label: "Tipo" },
+    { value: "nombre", label: "Nombre" },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -100,21 +135,43 @@ function FormasPagoPage() {
         <p className="text-sm text-muted-foreground">
           {total} forma{total !== 1 ? "s" : ""} de pago
         </p>
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Buscar forma de pago..."
-            className="pl-9 pr-8"
-          />
-          {search && (
+        <div className="flex items-center gap-2">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="Buscar forma de pago..."
+              className="pl-9 pr-8"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => handleSearchChange("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+
+          <Button variant="outline" size="icon" onClick={() => setSheetOpen(true)} className="relative shrink-0">
+            <SlidersHorizontal className="h-4 w-4" />
+            {activeFilterCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
+                {activeFilterCount}
+              </span>
+            )}
+          </Button>
+
+          {activeFilterCount > 0 && (
             <button
               type="button"
-              onClick={() => handleSearchChange("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+              onClick={clearFilters}
+              className="flex items-center gap-1 shrink-0 rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer"
             >
-              <X className="h-4 w-4" />
+              <FilterX className="h-3.5 w-3.5" />
+              Limpiar
             </button>
           )}
         </div>
@@ -194,6 +251,77 @@ function FormasPagoPage() {
         formaPagoName={deletingFormaPago?.nombre ?? ""}
         isLoading={deleteMutation.isPending}
       />
+
+      <FilterSheet open={sheetOpen} onClose={() => setSheetOpen(false)}>
+        <FilterSheet.Header onClose={() => setSheetOpen(false)} />
+        <FilterSheet.Body>
+          <FilterSheet.Section label="Ordenar por">
+            <div className="space-y-2">
+              <div className="flex gap-1.5">
+                {sortOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => handleSort(opt.value)}
+                    className={cn(
+                      "flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer",
+                      sortBy === opt.value
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-input/40 text-muted-foreground hover:border-input hover:text-foreground"
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setSortDir("asc")}
+                  className={cn(
+                    "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-1.5",
+                    sortDir === "asc"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-input/40 text-muted-foreground hover:border-input hover:text-foreground"
+                  )}
+                >
+                  <ArrowUpDown className="h-3.5 w-3.5" />
+                  Ascendente
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSortDir("desc")}
+                  className={cn(
+                    "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-1.5",
+                    sortDir === "desc"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-input/40 text-muted-foreground hover:border-input hover:text-foreground"
+                  )}
+                >
+                  <ArrowUpDown className="h-3.5 w-3.5" />
+                  Descendente
+                </button>
+              </div>
+            </div>
+          </FilterSheet.Section>
+        </FilterSheet.Body>
+        <FilterSheet.Footer>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="flex-1 rounded-lg border border-border/30 px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer"
+          >
+            Limpiar filtros
+          </button>
+          <button
+            type="button"
+            onClick={() => setSheetOpen(false)}
+            className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer"
+          >
+            Aplicar
+          </button>
+        </FilterSheet.Footer>
+      </FilterSheet>
     </div>
   );
 }

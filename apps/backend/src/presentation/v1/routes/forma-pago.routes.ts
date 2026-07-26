@@ -1,4 +1,6 @@
 import { Hono } from "hono";
+import { z } from "zod";
+
 import { authMiddleware } from "@/presentation/v1/middlewares/auth.middleware";
 import { FormaPagoPrismaRepository } from "@/infrastructure/repositories/forma-pago-prisma.repository";
 import { GetFormasPagoUseCase } from "@/application/use-cases/forma-pago/get-formas-pago.use-case";
@@ -21,6 +23,7 @@ const updateFormaPago = new UpdateFormaPagoUseCase(repository);
 const deleteFormaPago = new DeleteFormaPagoUseCase(repository);
 const revealFormaPago = new RevealFormaPagoUseCase(repository);
 
+const sortDirSchema = z.enum(["asc", "desc"]).optional();
 const EFECTIVO_GRADIENTE_INICIO = "#2D6A4F";
 const EFECTIVO_GRADIENTE_FIN = "#1B4332";
 
@@ -31,6 +34,8 @@ router.use("*", authMiddleware);
 router.get("/", async (c) => {
   const userId = c.get("user").id;
   const search = c.req.query("search");
+  const sortByRaw = c.req.query("sortBy");
+  const sortDirRaw = c.req.query("sortDir");
   const page = Math.max(1, Number(c.req.query("page")) || 1);
   const limit = Math.min(Math.max(1, Number(c.req.query("limit")) || 24), 50);
 
@@ -49,11 +54,16 @@ router.get("/", async (c) => {
     });
   }
 
+  const sortBy = sortByRaw || undefined;
+  const sortDir = sortDirRaw ? sortDirSchema.parse(sortDirRaw) : undefined;
+
   const filters: FindFormasPagoFilters = {
     userId,
     search: search || undefined,
     page,
     limit,
+    sortBy,
+    sortDir,
   };
 
   const result = await getFormasPago.execute(filters);

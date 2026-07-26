@@ -176,6 +176,29 @@
   }
 }
 
+/* Subtle custom scrollbar — used inside filter sheets, select lists */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(217 15% 30%) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 5px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: hsl(217 15% 30%);
+  border-radius: 9999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: hsl(217 15% 40%);
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);

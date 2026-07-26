@@ -1,19 +1,19 @@
-import "dotenv/config";
-import { prisma } from "@/db";
+-- Add forma_pago_id to tbl_transaction (nullable initially for migration)
+ALTER TABLE "tbl_transaction"
+ADD COLUMN "forma_pago_id" TEXT;
 
-const ENTIDADES = [
-  { nombre: "Bancolombia", gradienteInicio: "#FFD100", gradienteFin: "#FCA311", formatoNumero: "XXX-XXXX-XXX" },
-  { nombre: "Nu", gradienteInicio: "#7B2FBE", gradienteFin: "#4A1D8A", formatoNumero: "XXX-XXXX-XXX" },
-  { nombre: "Nequi", gradienteInicio: "#E91E63", gradienteFin: "#AD1457", formatoNumero: "XXX-XXX-XXXX" },
-  { nombre: "DaviPlata", gradienteInicio: "#FF0000", gradienteFin: "#CC0000", formatoNumero: "XXX-XXX-XXXX" },
-  { nombre: "Bre-B", gradienteInicio: "#1A73E8", gradienteFin: "#0D47A1", formatoNumero: null },
-];
+ALTER TABLE "tbl_transaction"
+ADD CONSTRAINT "fk_transaction_forma_pago"
+FOREIGN KEY ("forma_pago_id") REFERENCES "tbl_forma_pago"("id")
+ON DELETE SET NULL;
 
-const SPDEFS = `
 -- ============================================================================
 -- Stored Procedures: Standardized List/Pagination
 -- ============================================================================
 
+-- ----------------------------------------------------------------------------
+-- sp_list_tbl_transactions
+-- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION sp_list_tbl_transactions(
   p_user_id TEXT,
   p_search TEXT DEFAULT NULL,
@@ -45,6 +45,7 @@ BEGIN
   IF p_page_size > 100 THEN p_page_size := 100; END IF;
   IF p_page_size < 1 THEN p_page_size := 10; END IF;
   IF p_page < 1 THEN p_page := 1; END IF;
+
   v_offset := (p_page - 1) * p_page_size;
 
   v_sort_expr := CASE p_sort_by
@@ -67,18 +68,23 @@ BEGIN
   IF p_search IS NOT NULL AND p_search <> '' THEN
     v_where_clause := v_where_clause || ' AND t.description ILIKE ' || quote_literal('%' || p_search || '%');
   END IF;
+
   IF p_type IS NOT NULL AND p_type <> '' THEN
     v_where_clause := v_where_clause || ' AND c.type = ' || quote_literal(p_type);
   END IF;
+
   IF p_category_id IS NOT NULL AND p_category_id <> '' THEN
     v_where_clause := v_where_clause || ' AND t.category_id = ' || quote_literal(p_category_id);
   END IF;
+
   IF p_forma_pago_id IS NOT NULL AND p_forma_pago_id <> '' THEN
     v_where_clause := v_where_clause || ' AND t.forma_pago_id = ' || quote_literal(p_forma_pago_id);
   END IF;
+
   IF p_date_from IS NOT NULL THEN
     v_where_clause := v_where_clause || ' AND t.date >= ' || quote_literal(p_date_from::TEXT) || '::DATE';
   END IF;
+
   IF p_date_to IS NOT NULL THEN
     v_where_clause := v_where_clause || ' AND t.date < ' || quote_literal(p_date_to::TEXT) || '::DATE + 1';
   END IF;
@@ -87,12 +93,14 @@ BEGIN
     || 'INNER JOIN tbl_category c ON c.id = t.category_id '
     || 'LEFT JOIN tbl_forma_pago fp ON fp.id = t.forma_pago_id '
     || v_where_clause;
+
   EXECUTE v_count_query INTO v_total;
 
   v_total_pages := CASE WHEN v_total > 0 THEN CEIL(v_total::FLOAT / p_page_size)::INT ELSE 0 END;
 
   v_data_query := 'SELECT json_agg(row_to_json(q)) FROM ('
-    || 'SELECT t.id, t.amount, t.date, t.description, t.category_id AS "categoryId", '
+    || 'SELECT '
+    || 't.id, t.amount, t.date, t.description, t.category_id AS "categoryId", '
     || 't.user_id AS "userId", t.forma_pago_id AS "formaPagoId", '
     || 't.created_at AS "createdAt", t.updated_at AS "updatedAt", '
     || 'json_build_object(''id'', c.id, ''name'', c.name, ''type'', c.type, '
@@ -112,6 +120,7 @@ BEGIN
     || ' ORDER BY ' || v_sort_expr || ' ' || v_order_dir
     || ' LIMIT ' || p_page_size || ' OFFSET ' || v_offset
     || ') q';
+
   EXECUTE v_data_query INTO v_result;
 
   RETURN jsonb_build_object(
@@ -124,6 +133,9 @@ BEGIN
 END;
 $$;
 
+-- ----------------------------------------------------------------------------
+-- sp_list_tbl_categories
+-- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION sp_list_tbl_categories(
   p_user_id TEXT,
   p_search TEXT DEFAULT NULL,
@@ -151,6 +163,7 @@ BEGIN
   IF p_page_size > 100 THEN p_page_size := 100; END IF;
   IF p_page_size < 1 THEN p_page_size := 10; END IF;
   IF p_page < 1 THEN p_page := 1; END IF;
+
   v_offset := (p_page - 1) * p_page_size;
 
   v_sort_expr := CASE p_sort_by
@@ -166,23 +179,29 @@ BEGIN
   END;
 
   v_where_clause := 'WHERE (c.user_id = ' || quote_literal(p_user_id) || ' OR c.user_id IS NULL)';
+
   IF p_search IS NOT NULL AND p_search <> '' THEN
     v_where_clause := v_where_clause || ' AND c.name ILIKE ' || quote_literal('%' || p_search || '%');
   END IF;
+
   IF p_type IS NOT NULL AND p_type <> '' THEN
     v_where_clause := v_where_clause || ' AND c.type = ' || quote_literal(p_type);
   END IF;
 
   v_count_query := 'SELECT COUNT(*) FROM tbl_category c ' || v_where_clause;
   EXECUTE v_count_query INTO v_total;
+
   v_total_pages := CASE WHEN v_total > 0 THEN CEIL(v_total::FLOAT / p_page_size)::INT ELSE 0 END;
 
   v_data_query := 'SELECT json_agg(row_to_json(q)) FROM ('
     || 'SELECT c.id, c.name, c.type, c.icon, c.user_id AS "userId", '
     || 'c.created_at AS "createdAt", c.updated_at AS "updatedAt" '
-    || 'FROM tbl_category c ' || v_where_clause
+    || 'FROM tbl_category c '
+    || v_where_clause
     || ' ORDER BY ' || v_sort_expr || ' ' || v_order_dir
-    || ' LIMIT ' || p_page_size || ' OFFSET ' || v_offset || ') q';
+    || ' LIMIT ' || p_page_size || ' OFFSET ' || v_offset
+    || ') q';
+
   EXECUTE v_data_query INTO v_result;
 
   RETURN jsonb_build_object(
@@ -195,6 +214,9 @@ BEGIN
 END;
 $$;
 
+-- ----------------------------------------------------------------------------
+-- sp_list_tbl_subscriptions
+-- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION sp_list_tbl_subscriptions(
   p_user_id TEXT,
   p_search TEXT DEFAULT NULL,
@@ -223,6 +245,7 @@ BEGIN
   IF p_page_size > 100 THEN p_page_size := 100; END IF;
   IF p_page_size < 1 THEN p_page_size := 12; END IF;
   IF p_page < 1 THEN p_page := 1; END IF;
+
   v_offset := (p_page - 1) * p_page_size;
 
   v_sort_expr := CASE p_sort_by
@@ -241,12 +264,15 @@ BEGIN
   END;
 
   v_where_clause := 'WHERE s.user_id = ' || quote_literal(p_user_id);
+
   IF p_search IS NOT NULL AND p_search <> '' THEN
     v_where_clause := v_where_clause || ' AND s.name ILIKE ' || quote_literal('%' || p_search || '%');
   END IF;
+
   IF p_status IS NOT NULL AND p_status <> '' THEN
     v_where_clause := v_where_clause || ' AND s.status = ' || quote_literal(p_status);
   END IF;
+
   IF p_tag_id IS NOT NULL AND p_tag_id <> '' THEN
     v_where_clause := v_where_clause || ' AND EXISTS ('
       || 'SELECT 1 FROM "_SubscriptionToSubscriptionTag" st '
@@ -255,6 +281,7 @@ BEGIN
 
   v_count_query := 'SELECT COUNT(*) FROM tbl_subscription s ' || v_where_clause;
   EXECUTE v_count_query INTO v_total;
+
   v_total_pages := CASE WHEN v_total > 0 THEN CEIL(v_total::FLOAT / p_page_size)::INT ELSE 0 END;
 
   v_data_query := 'SELECT json_agg(row_to_json(q)) FROM ('
@@ -282,17 +309,24 @@ BEGIN
     || 'LEFT JOIN tbl_entidad_financiera ef ON ef.id = fp.entidad_financiera_id '
     || v_where_clause
     || ' ORDER BY ' || v_sort_expr || ' ' || v_order_dir
-    || ' LIMIT ' || p_page_size || ' OFFSET ' || v_offset || ') q';
+    || ' LIMIT ' || p_page_size || ' OFFSET ' || v_offset
+    || ') q';
+
   EXECUTE v_data_query INTO v_result;
 
   RETURN jsonb_build_object(
     'data', COALESCE(v_result, '[]'::JSONB),
-    'total', v_total, 'page', p_page,
-    'pageSize', p_page_size, 'totalPages', v_total_pages
+    'total', v_total,
+    'page', p_page,
+    'pageSize', p_page_size,
+    'totalPages', v_total_pages
   );
 END;
 $$;
 
+-- ----------------------------------------------------------------------------
+-- sp_list_tbl_formas_pago
+-- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION sp_list_tbl_formas_pago(
   p_user_id TEXT,
   p_search TEXT DEFAULT NULL,
@@ -319,6 +353,7 @@ BEGIN
   IF p_page_size > 100 THEN p_page_size := 100; END IF;
   IF p_page_size < 1 THEN p_page_size := 24; END IF;
   IF p_page < 1 THEN p_page := 1; END IF;
+
   v_offset := (p_page - 1) * p_page_size;
 
   v_sort_expr := CASE p_sort_by
@@ -326,6 +361,7 @@ BEGIN
     WHEN 'nombre' THEN 'fp.nombre'
     ELSE 'fp.tipo'
   END;
+
   v_order_dir := CASE p_sort_dir
     WHEN 'asc'  THEN 'ASC NULLS LAST'
     WHEN 'desc' THEN 'DESC NULLS LAST'
@@ -333,19 +369,23 @@ BEGIN
   END;
 
   v_where_clause := 'WHERE fp.user_id = ' || quote_literal(p_user_id);
+
   IF p_search IS NOT NULL AND p_search <> '' THEN
     v_where_clause := v_where_clause || ' AND fp.nombre ILIKE ' || quote_literal('%' || p_search || '%');
   END IF;
 
   v_count_query := 'SELECT COUNT(*) FROM tbl_forma_pago fp ' || v_where_clause;
   EXECUTE v_count_query INTO v_total;
+
   v_total_pages := CASE WHEN v_total > 0 THEN CEIL(v_total::FLOAT / p_page_size)::INT ELSE 0 END;
 
   v_data_query := 'SELECT json_agg(row_to_json(q)) FROM ('
     || 'SELECT fp.id, fp.nombre, fp.tipo, fp.numero_encriptado AS "numeroEncriptado", '
     || 'fp.ultimos_cuatro AS "ultimosCuatro", fp.publico, '
-    || 'fp.gradiente_inicio AS "gradienteInicio", fp.gradiente_fin AS "gradienteFin", '
-    || 'fp.entidad_financiera_id AS "entidadFinancieraId", fp.user_id AS "userId", '
+    || 'fp.gradiente_inicio AS "gradienteInicio", '
+    || 'fp.gradiente_fin AS "gradienteFin", '
+    || 'fp.entidad_financiera_id AS "entidadFinancieraId", '
+    || 'fp.user_id AS "userId", '
     || 'fp.created_at AS "createdAt", fp.updated_at AS "updatedAt", '
     || 'CASE WHEN ef.id IS NOT NULL THEN json_build_object('
     || '''id'', ef.id, ''nombre'', ef.nombre, ''formatoNumero'', ef.formato_numero'
@@ -354,17 +394,24 @@ BEGIN
     || 'LEFT JOIN tbl_entidad_financiera ef ON ef.id = fp.entidad_financiera_id '
     || v_where_clause
     || ' ORDER BY ' || v_sort_expr || ' ' || v_order_dir
-    || ' LIMIT ' || p_page_size || ' OFFSET ' || v_offset || ') q';
+    || ' LIMIT ' || p_page_size || ' OFFSET ' || v_offset
+    || ') q';
+
   EXECUTE v_data_query INTO v_result;
 
   RETURN jsonb_build_object(
     'data', COALESCE(v_result, '[]'::JSONB),
-    'total', v_total, 'page', p_page,
-    'pageSize', p_page_size, 'totalPages', v_total_pages
+    'total', v_total,
+    'page', p_page,
+    'pageSize', p_page_size,
+    'totalPages', v_total_pages
   );
 END;
 $$;
 
+-- ----------------------------------------------------------------------------
+-- sp_list_tbl_entidades_financieras
+-- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION sp_list_tbl_entidades_financieras(
   p_user_id TEXT,
   p_search TEXT DEFAULT NULL,
@@ -391,6 +438,7 @@ BEGIN
   IF p_page_size > 100 THEN p_page_size := 100; END IF;
   IF p_page_size < 1 THEN p_page_size := 50; END IF;
   IF p_page < 1 THEN p_page := 1; END IF;
+
   v_offset := (p_page - 1) * p_page_size;
 
   v_sort_expr := CASE p_sort_by
@@ -398,6 +446,7 @@ BEGIN
     WHEN 'esSistema' THEN 'ef.es_sistema'
     ELSE 'ef.nombre'
   END;
+
   v_order_dir := CASE p_sort_dir
     WHEN 'asc'  THEN 'ASC NULLS LAST'
     WHEN 'desc' THEN 'DESC NULLS LAST'
@@ -405,12 +454,14 @@ BEGIN
   END;
 
   v_where_clause := 'WHERE (ef.user_id = ' || quote_literal(p_user_id) || ' OR ef.user_id IS NULL)';
+
   IF p_search IS NOT NULL AND p_search <> '' THEN
     v_where_clause := v_where_clause || ' AND ef.nombre ILIKE ' || quote_literal('%' || p_search || '%');
   END IF;
 
   v_count_query := 'SELECT COUNT(*) FROM tbl_entidad_financiera ef ' || v_where_clause;
   EXECUTE v_count_query INTO v_total;
+
   v_total_pages := CASE WHEN v_total > 0 THEN CEIL(v_total::FLOAT / p_page_size)::INT ELSE 0 END;
 
   v_data_query := 'SELECT json_agg(row_to_json(q)) FROM ('
@@ -418,64 +469,20 @@ BEGIN
     || 'ef.gradiente_fin AS "gradienteFin", ef.formato_numero AS "formatoNumero", '
     || 'ef.es_sistema AS "esSistema", ef.user_id AS "userId", '
     || 'ef.created_at AS "createdAt", ef.updated_at AS "updatedAt" '
-    || 'FROM tbl_entidad_financiera ef ' || v_where_clause
+    || 'FROM tbl_entidad_financiera ef '
+    || v_where_clause
     || ' ORDER BY ' || v_sort_expr || ' ' || v_order_dir
-    || ' LIMIT ' || p_page_size || ' OFFSET ' || v_offset || ') q';
+    || ' LIMIT ' || p_page_size || ' OFFSET ' || v_offset
+    || ') q';
+
   EXECUTE v_data_query INTO v_result;
 
   RETURN jsonb_build_object(
     'data', COALESCE(v_result, '[]'::JSONB),
-    'total', v_total, 'page', p_page,
-    'pageSize', p_page_size, 'totalPages', v_total_pages
+    'total', v_total,
+    'page', p_page,
+    'pageSize', p_page_size,
+    'totalPages', v_total_pages
   );
 END;
 $$;
-`;
-
-async function seedSPs() {
-  console.log("Creando stored procedures...");
-  await prisma.$executeRawUnsafe(SPDEFS);
-  console.log("Stored procedures creados.");
-}
-
-async function seedEntidades() {
-  console.log("Iniciando seed de entidades financieras...");
-
-  for (const entidad of ENTIDADES) {
-    const existing = await prisma.entidadFinanciera.findFirst({
-      where: { nombre: entidad.nombre, userId: null },
-    });
-
-    if (existing) {
-      console.log(`Entidad "${entidad.nombre}" ya existe, omitiendo...`);
-      continue;
-    }
-
-    await prisma.entidadFinanciera.create({
-      data: { ...entidad, esSistema: true },
-    });
-
-    console.log(`Entidad "${entidad.nombre}" creada.`);
-  }
-
-  console.log("Seed completado.");
-}
-
-async function main() {
-  const args = process.argv.slice(2);
-  const onlySPs = args.includes("--sps") || args.includes("--only-sps");
-
-  if (onlySPs) {
-    await seedSPs();
-  } else {
-    await seedSPs();
-    await seedEntidades();
-  }
-
-  await prisma.$disconnect();
-}
-
-main().catch((e) => {
-  console.error("Error en seed:", e);
-  process.exit(1);
-});

@@ -21,6 +21,7 @@ const getDashboardSummary = new GetDashboardSummaryUseCase(repository);
 const getExpensesByCategory = new GetExpensesByCategoryUseCase(repository);
 
 const transactionTypeSchema = z.enum(["INCOME", "EXPENSE"]).optional();
+const sortDirSchema = z.enum(["asc", "desc"]).optional();
 
 const router = new Hono();
 
@@ -48,21 +49,35 @@ router.get("/", async (c) => {
   const search = c.req.query("search");
   const monthRaw = c.req.query("month");
   const yearRaw = c.req.query("year");
+  const dateFrom = c.req.query("dateFrom");
+  const dateTo = c.req.query("dateTo");
+  const categoryId = c.req.query("categoryId");
+  const formaPagoId = c.req.query("formaPagoId");
+  const sortByRaw = c.req.query("sortBy");
+  const sortDirRaw = c.req.query("sortDir");
   const page = Math.max(1, Number(c.req.query("page")) || 1);
   const limit = Math.min(Math.max(1, Number(c.req.query("limit")) || 10), 50);
 
   const type = typeRaw ? transactionTypeSchema.parse(typeRaw) : undefined;
   const month = monthRaw ? Number(monthRaw) : undefined;
   const year = yearRaw ? Number(yearRaw) : undefined;
+  const sortBy = sortByRaw || undefined;
+  const sortDir = sortDirRaw ? sortDirSchema.parse(sortDirRaw) : undefined;
 
   const filters: FindTransactionsFilters = {
     userId,
     type,
+    categoryId: categoryId || undefined,
+    formaPagoId: formaPagoId || undefined,
     month,
     year,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
     search: search || undefined,
     page,
     limit,
+    sortBy,
+    sortDir,
   };
 
   const result = await getTransactions.execute(filters);

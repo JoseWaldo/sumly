@@ -5,6 +5,7 @@ export const transactionFormSchema = z.object({
   date: z.string().min(1, "La fecha es requerida"),
   description: z.string().max(255, "La descripcion no puede exceder 255 caracteres").optional().or(z.literal("")),
   categoryId: z.string().min(1, "La categoria es requerida"),
+  formaPagoId: z.string().min(1, "La forma de pago es requerida"),
 });
 
 export type TransactionFormInput = z.infer<typeof transactionFormSchema>;
@@ -19,6 +20,15 @@ export interface TransactionCategory {
   updatedAt: string;
 }
 
+export interface TransactionFormaPago {
+  id: string;
+  nombre: string;
+  tipo: string;
+  ultimosCuatro: string | null;
+  gradienteInicio: string;
+  gradienteFin: string;
+}
+
 export interface Transaction {
   id: string;
   amount: number;
@@ -26,6 +36,8 @@ export interface Transaction {
   description: string | null;
   categoryId: string;
   category?: TransactionCategory;
+  formaPagoId: string | null;
+  formaPago?: TransactionFormaPago;
   userId: string;
   createdAt: string;
   updatedAt: string;

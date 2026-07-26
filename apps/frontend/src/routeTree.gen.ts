@@ -18,8 +18,7 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardCategoriasRouteImport } from './routes/dashboard/categorias'
 import { Route as DashboardEntidadesFinancierasRouteImport } from './routes/dashboard/entidades-financieras'
 import { Route as DashboardFormasDePagoRouteImport } from './routes/dashboard/formas-de-pago'
-import { Route as DashboardGastosRouteImport } from './routes/dashboard/gastos'
-import { Route as DashboardIngresosRouteImport } from './routes/dashboard/ingresos'
+import { Route as DashboardHistorialRouteImport } from './routes/dashboard/historial'
 import { Route as DashboardPerfilRouteImport } from './routes/dashboard/perfil'
 import { Route as DashboardSuscripcionesRouteImport } from './routes/dashboard/suscripciones'
 
@@ -69,14 +68,9 @@ const DashboardFormasDePagoRoute = DashboardFormasDePagoRouteImport.update({
   path: '/formas-de-pago',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardGastosRoute = DashboardGastosRouteImport.update({
-  id: '/gastos',
-  path: '/gastos',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardIngresosRoute = DashboardIngresosRouteImport.update({
-  id: '/ingresos',
-  path: '/ingresos',
+const DashboardHistorialRoute = DashboardHistorialRouteImport.update({
+  id: '/historial',
+  path: '/historial',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardPerfilRoute = DashboardPerfilRouteImport.update({
@@ -99,8 +93,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/categorias': typeof DashboardCategoriasRoute
   '/dashboard/entidades-financieras': typeof DashboardEntidadesFinancierasRoute
   '/dashboard/formas-de-pago': typeof DashboardFormasDePagoRoute
-  '/dashboard/gastos': typeof DashboardGastosRoute
-  '/dashboard/ingresos': typeof DashboardIngresosRoute
+  '/dashboard/historial': typeof DashboardHistorialRoute
   '/dashboard/perfil': typeof DashboardPerfilRoute
   '/dashboard/suscripciones': typeof DashboardSuscripcionesRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -113,8 +106,7 @@ export interface FileRoutesByTo {
   '/dashboard/categorias': typeof DashboardCategoriasRoute
   '/dashboard/entidades-financieras': typeof DashboardEntidadesFinancierasRoute
   '/dashboard/formas-de-pago': typeof DashboardFormasDePagoRoute
-  '/dashboard/gastos': typeof DashboardGastosRoute
-  '/dashboard/ingresos': typeof DashboardIngresosRoute
+  '/dashboard/historial': typeof DashboardHistorialRoute
   '/dashboard/perfil': typeof DashboardPerfilRoute
   '/dashboard/suscripciones': typeof DashboardSuscripcionesRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -129,8 +121,7 @@ export interface FileRoutesById {
   '/dashboard/categorias': typeof DashboardCategoriasRoute
   '/dashboard/entidades-financieras': typeof DashboardEntidadesFinancierasRoute
   '/dashboard/formas-de-pago': typeof DashboardFormasDePagoRoute
-  '/dashboard/gastos': typeof DashboardGastosRoute
-  '/dashboard/ingresos': typeof DashboardIngresosRoute
+  '/dashboard/historial': typeof DashboardHistorialRoute
   '/dashboard/perfil': typeof DashboardPerfilRoute
   '/dashboard/suscripciones': typeof DashboardSuscripcionesRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -146,8 +137,7 @@ export interface FileRouteTypes {
     | '/dashboard/categorias'
     | '/dashboard/entidades-financieras'
     | '/dashboard/formas-de-pago'
-    | '/dashboard/gastos'
-    | '/dashboard/ingresos'
+    | '/dashboard/historial'
     | '/dashboard/perfil'
     | '/dashboard/suscripciones'
     | '/dashboard/'
@@ -160,8 +150,7 @@ export interface FileRouteTypes {
     | '/dashboard/categorias'
     | '/dashboard/entidades-financieras'
     | '/dashboard/formas-de-pago'
-    | '/dashboard/gastos'
-    | '/dashboard/ingresos'
+    | '/dashboard/historial'
     | '/dashboard/perfil'
     | '/dashboard/suscripciones'
     | '/dashboard'
@@ -175,8 +164,7 @@ export interface FileRouteTypes {
     | '/dashboard/categorias'
     | '/dashboard/entidades-financieras'
     | '/dashboard/formas-de-pago'
-    | '/dashboard/gastos'
-    | '/dashboard/ingresos'
+    | '/dashboard/historial'
     | '/dashboard/perfil'
     | '/dashboard/suscripciones'
     | '/dashboard/'
@@ -253,18 +241,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFormasDePagoRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/gastos': {
-      id: '/dashboard/gastos'
-      path: '/gastos'
-      fullPath: '/dashboard/gastos'
-      preLoaderRoute: typeof DashboardGastosRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/ingresos': {
-      id: '/dashboard/ingresos'
-      path: '/ingresos'
-      fullPath: '/dashboard/ingresos'
-      preLoaderRoute: typeof DashboardIngresosRouteImport
+    '/dashboard/historial': {
+      id: '/dashboard/historial'
+      path: '/historial'
+      fullPath: '/dashboard/historial'
+      preLoaderRoute: typeof DashboardHistorialRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/perfil': {
@@ -300,8 +281,7 @@ interface DashboardRouteChildren {
   DashboardCategoriasRoute: typeof DashboardCategoriasRoute
   DashboardEntidadesFinancierasRoute: typeof DashboardEntidadesFinancierasRoute
   DashboardFormasDePagoRoute: typeof DashboardFormasDePagoRoute
-  DashboardGastosRoute: typeof DashboardGastosRoute
-  DashboardIngresosRoute: typeof DashboardIngresosRoute
+  DashboardHistorialRoute: typeof DashboardHistorialRoute
   DashboardPerfilRoute: typeof DashboardPerfilRoute
   DashboardSuscripcionesRoute: typeof DashboardSuscripcionesRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -311,8 +291,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardCategoriasRoute: DashboardCategoriasRoute,
   DashboardEntidadesFinancierasRoute: DashboardEntidadesFinancierasRoute,
   DashboardFormasDePagoRoute: DashboardFormasDePagoRoute,
-  DashboardGastosRoute: DashboardGastosRoute,
-  DashboardIngresosRoute: DashboardIngresosRoute,
+  DashboardHistorialRoute: DashboardHistorialRoute,
   DashboardPerfilRoute: DashboardPerfilRoute,
   DashboardSuscripcionesRoute: DashboardSuscripcionesRoute,
   DashboardIndexRoute: DashboardIndexRoute,

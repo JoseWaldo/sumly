@@ -6,6 +6,8 @@ export interface FindEntidadesFinancierasFilters {
   search?: string;
   page: number;
   limit: number;
+  sortBy?: string;
+  sortDir?: "asc" | "desc";
 }
 
 export interface CreateEntidadFinancieraInput {

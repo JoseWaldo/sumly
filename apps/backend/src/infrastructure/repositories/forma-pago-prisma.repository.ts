@@ -8,6 +8,7 @@ import type {
 } from "@/domain/repositories/forma-pago.repository";
 import type { FormaPagoEntity } from "@/domain/entities/forma-pago.entity";
 import type { PaginatedResult } from "@/shared/types";
+import type { FormaPagoListRow, SpListResult } from "@/domain/types/sp-row-types";
 import { NotFoundError } from "@/shared/errors";
 
 export class FormaPagoPrismaRepository implements IFormaPagoRepository {
@@ -18,28 +19,43 @@ export class FormaPagoPrismaRepository implements IFormaPagoRepository {
   }
 
   async findAllByUser(filters: FindFormasPagoFilters): Promise<PaginatedResult<FormaPagoEntity>> {
-    const where = {
-      userId: filters.userId,
-      ...(filters.search && { nombre: { contains: filters.search, mode: "insensitive" as const } }),
-    };
+    const rows = await this.db.$queryRaw<[{ sp_list_tbl_formas_pago: SpListResult<FormaPagoListRow> }]>`
+      SELECT sp_list_tbl_formas_pago(
+        ${filters.userId}::TEXT,
+        ${filters.search || null}::TEXT,
+        ${filters.page}::INT,
+        ${filters.limit}::INT,
+        ${filters.sortBy || null}::TEXT,
+        ${filters.sortDir || null}::TEXT
+      )
+    `;
 
-    const [formasPago, total] = await Promise.all([
-      this.db.formaPago.findMany({
-        where,
-        include: { entidadFinanciera: true },
-        orderBy: [{ tipo: "asc" }, { nombre: "asc" }],
-        skip: (filters.page - 1) * filters.limit,
-        take: filters.limit,
-      }),
-      this.db.formaPago.count({ where }),
-    ]);
+    const result = rows[0]?.sp_list_tbl_formas_pago;
+
+    if (!result) {
+      return { data: [], total: 0, page: filters.page, limit: filters.limit, totalPages: 0 };
+    }
 
     return {
-      data: formasPago.map((f) => this.toEntity(f)),
-      total,
+      data: (result.data ?? []).map((row) => ({
+        id: row.id,
+        nombre: row.nombre,
+        tipo: row.tipo as FormaPagoEntity["tipo"],
+        numeroEncriptado: row.numeroEncriptado,
+        ultimosCuatro: row.ultimosCuatro,
+        publico: row.publico,
+        gradienteInicio: row.gradienteInicio,
+        gradienteFin: row.gradienteFin,
+        entidadFinancieraId: row.entidadFinancieraId,
+        formatoNumero: row.entidadFinanciera?.formatoNumero ?? null,
+        userId: row.userId,
+        createdAt: new Date(row.createdAt),
+        updatedAt: new Date(row.updatedAt),
+      })),
+      total: Number(result.total),
       page: filters.page,
       limit: filters.limit,
-      totalPages: Math.ceil(total / filters.limit),
+      totalPages: result.totalPages,
     };
   }
 
@@ -74,7 +90,6 @@ export class FormaPagoPrismaRepository implements IFormaPagoRepository {
       },
       include: { entidadFinanciera: true },
     });
-
     return this.toEntity(formaPago);
   }
 
@@ -91,7 +106,6 @@ export class FormaPagoPrismaRepository implements IFormaPagoRepository {
       },
       include: { entidadFinanciera: true },
     });
-
     return this.toEntity(formaPago);
   }
 
@@ -101,15 +115,12 @@ export class FormaPagoPrismaRepository implements IFormaPagoRepository {
 
   async revealNumero(id: string, userId: string): Promise<string> {
     const formaPago = await this.db.formaPago.findUnique({ where: { id } });
-
     if (!formaPago || formaPago.userId !== userId) {
       throw new NotFoundError("Forma de pago no encontrada");
     }
-
     if (!formaPago.numeroEncriptado) {
       throw new NotFoundError("Esta forma de pago no tiene un numero asociado");
     }
-
     return formaPago.numeroEncriptado;
   }
 

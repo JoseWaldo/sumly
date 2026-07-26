@@ -5,12 +5,20 @@ import type {
   EntidadFinanciera,
 } from "@/features/formas-pago/schemas/forma-pago.schema";
 
-function useEntidadesFinancieras(search?: string) {
+interface UseEntidadesFinancierasParams {
+  search?: string;
+  sortBy?: string;
+  sortDir?: "asc" | "desc";
+}
+
+function useEntidadesFinancieras({ search, sortBy, sortDir }: UseEntidadesFinancierasParams = {}) {
   return useQuery({
-    queryKey: ["entidades-financieras", { search }],
+    queryKey: ["entidades-financieras", { search, sortBy, sortDir }],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
+      if (sortBy) params.set("sortBy", sortBy);
+      if (sortDir) params.set("sortDir", sortDir);
       params.set("page", "1");
       params.set("limit", "100");
       return apiClient<PaginatedEntidadesFinancieras>(

@@ -20,6 +20,7 @@ const updateCategory = new UpdateCategoryUseCase(repository);
 const deleteCategory = new DeleteCategoryUseCase(repository);
 
 const categoryTypeSchema = z.enum(["INCOME", "EXPENSE"]).optional();
+const sortDirSchema = z.enum(["asc", "desc"]).optional();
 
 const router = new Hono();
 
@@ -29,10 +30,14 @@ router.get("/", async (c) => {
   const userId = c.get("user").id;
   const typeRaw = c.req.query("type");
   const search = c.req.query("search");
+  const sortByRaw = c.req.query("sortBy");
+  const sortDirRaw = c.req.query("sortDir");
   const page = Math.max(1, Number(c.req.query("page")) || 1);
   const limit = Math.min(Math.max(1, Number(c.req.query("limit")) || 10), 50);
 
   const type = typeRaw ? categoryTypeSchema.parse(typeRaw) : undefined;
+  const sortBy = sortByRaw || undefined;
+  const sortDir = sortDirRaw ? sortDirSchema.parse(sortDirRaw) : undefined;
 
   const filters: FindCategoriesFilters = {
     userId,
@@ -40,6 +45,8 @@ router.get("/", async (c) => {
     search: search || undefined,
     page,
     limit,
+    sortBy,
+    sortDir,
   };
 
   const result = await getCategories.execute(filters);

@@ -33,7 +33,14 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Generate Prisma client
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
+        run: cd apps/backend && bunx prisma generate
+
       - name: Lint
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
         run: bun run lint
 
   docker:

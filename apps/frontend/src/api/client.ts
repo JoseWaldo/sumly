@@ -1,7 +1,5 @@
 import { env } from "@/config/env";
 
-const baseUrl = env.apiUrl || (typeof window !== "undefined" ? window.location.origin : "");
-
 export async function apiClient<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
@@ -11,7 +9,7 @@ export async function apiClient<T = unknown>(
     ...options.headers,
   };
 
-  const response = await fetch(`${baseUrl}${endpoint}`, {
+  const response = await fetch(`${env.apiUrl}${endpoint}`, {
     ...options,
     credentials: "include",
     headers,

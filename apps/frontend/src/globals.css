@@ -115,6 +115,67 @@
   text-shadow: 0 0 24px var(--glow);
 }
 
+@keyframes glow-pulse {
+  0%, 100% { text-shadow: 0 0 24px var(--glow); }
+  50% { text-shadow: 0 0 40px var(--glow), 0 0 64px var(--glow); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-from-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-out-to-right {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes scale-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slide-in-from-bottom {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@utility animate-glow-pulse {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+@utility animate-fade-in {
+  animation: fade-in 400ms ease-out;
+}
+
+@utility animate-slide-in-right {
+  animation: slide-in-from-right 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@utility animate-slide-out-right {
+  animation: slide-out-to-right 200ms ease-in forwards;
+}
+
+@utility animate-scale-in {
+  animation: scale-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@utility animate-slide-in-bottom {
+  animation: slide-in-from-bottom 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);

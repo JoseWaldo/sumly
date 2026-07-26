@@ -67,7 +67,7 @@ function Index() {
 
           <h1 className="max-w-2xl text-4xl leading-tight font-normal tracking-tight sm:text-5xl lg:text-[56px] lg:leading-[1.05]">
             Tus finanzas en
-            <span className="text-primary dark:glow-text"> equilibrio</span>
+            <span className="text-primary dark:glow-text dark:animate-glow-pulse"> equilibrio</span>
           </h1>
           <p className="mt-6 max-w-lg text-lg text-muted-foreground">
             Sumly te ayuda a gestionar tus ingresos, gastos y presupuestos de
@@ -83,7 +83,7 @@ function Index() {
             </Link>
             <Link to="/auth/login">
               <Button variant="outline" size="lg" className="h-11 px-8 text-base">
-                Iniciar sesion
+                Iniciar sesión
               </Button>
             </Link>
           </div>
@@ -103,8 +103,8 @@ function Index() {
                 <div
                   key={title}
                   className={cn(
-                    "group flex flex-col rounded-xl border border-border/30 bg-card p-6 transition-colors",
-                    "hover:border-primary/20",
+                    "group flex flex-col rounded-xl border border-border/30 bg-card p-6 transition-all duration-300",
+                    "hover:border-primary/20 hover:-translate-y-0.5",
                     large && "sm:col-span-2"
                   )}
                 >

@@ -127,7 +127,7 @@ export function CategoriesTable({
                     ? "text-muted-foreground/30 cursor-not-allowed"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
-                title={isSystem ? "No se puede editar una categoria del sistema" : "Editar"}
+                title={isSystem ? "No se puede editar una categoría del sistema" : "Editar"}
               >
                 <Pencil className="h-3.5 w-3.5" />
               </button>
@@ -141,7 +141,7 @@ export function CategoriesTable({
                     ? "text-muted-foreground/30 cursor-not-allowed"
                     : "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                 )}
-                title={isSystem ? "No se puede eliminar una categoria del sistema" : "Eliminar"}
+                title={isSystem ? "No se puede eliminar una categoría del sistema" : "Eliminar"}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -209,7 +209,7 @@ export function CategoriesTable({
       {totalPages > 1 && (
         <div className="flex flex-col gap-2 border-t border-border/30 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">
-            {total} categoria{total !== 1 ? "s" : ""} — Página {page} de {totalPages}
+            {total} categoría{total !== 1 ? "s" : ""} — Página {page} de {totalPages}
           </p>
           <div className="flex items-center gap-1">
             <button

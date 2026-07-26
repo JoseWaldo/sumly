@@ -15,12 +15,12 @@ export function AppLogo({ className, iconClassName, showText = true }: AppLogoPr
           iconClassName,
         )}
       >
-        <span className="text-[17px] font-bold leading-none text-primary-foreground">
+        <span className="text-[17px] font-semibold leading-none text-primary-foreground">
           $
         </span>
       </div>
       {showText && (
-        <span className="text-lg font-bold tracking-tight">Sumly</span>
+        <span className="text-lg font-semibold tracking-tight">Sumly</span>
       )}
     </div>
   );

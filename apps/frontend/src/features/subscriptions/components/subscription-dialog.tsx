@@ -133,10 +133,10 @@ export function SubscriptionDialog({ open, onClose, defaultValues, onSubmit, isL
         if (e.target === overlayRef.current) onClose();
       }}
     >
-      <div className="w-[98%] max-w-md max-h-[90vh] overflow-y-auto rounded-xl border border-border/30 bg-card p-6 shadow-lg sm:w-full">
+      <div className="w-[98%] max-w-md max-h-[90vh] overflow-y-auto rounded-xl border border-border/30 bg-card p-6 shadow-lg sm:w-full animate-scale-in">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-medium">
-            {defaultValues ? "Editar suscripcion" : "Nueva suscripcion"}
+            {defaultValues ? "Editar suscripción" : "Nueva suscripción"}
           </h2>
           <button
             type="button"

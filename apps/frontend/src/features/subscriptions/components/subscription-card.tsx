@@ -37,7 +37,7 @@ export function SubscriptionCard({ subscription, onEdit, onDelete, onReport, onV
   return (
     <div
       className={cn(
-        "group relative flex flex-col rounded-xl border border-border/30 bg-card p-5 transition-colors hover:border-primary/20",
+        "group relative flex flex-col rounded-xl border border-border/30 bg-card p-5 transition-all duration-300 hover:border-primary/20 hover:-translate-y-0.5",
         subscription.status === "CANCELLED" && "opacity-60"
       )}
     >

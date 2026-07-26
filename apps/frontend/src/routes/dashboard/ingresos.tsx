@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -39,6 +40,7 @@ function IngresosPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
+  const { toast } = useToast();
 
   const { data, isLoading } = useTransactions({
     type: "INCOME",
@@ -71,8 +73,10 @@ function IngresosPage() {
   const handleSubmit = async (formData: TransactionFormInput) => {
     if (editingTransaction) {
       await updateMutation.mutateAsync({ id: editingTransaction.id, data: formData });
+      toast("Ingreso actualizado");
     } else {
       await createMutation.mutateAsync(formData);
+      toast("Ingreso creado");
     }
     handleCloseDialog();
   };
@@ -80,6 +84,7 @@ function IngresosPage() {
   const handleDeleteConfirm = async () => {
     if (!deletingTransaction) return;
     await deleteMutation.mutateAsync(deletingTransaction.id);
+    toast("Ingreso eliminado");
     setDeletingTransaction(null);
   };
 
@@ -91,7 +96,7 @@ function IngresosPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Ingresos</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Ingresos</h2>
           <p className="text-muted-foreground">Gestiona tus ingresos</p>
         </div>
         <Button onClick={handleOpenCreate}>
@@ -106,7 +111,7 @@ function IngresosPage() {
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Buscar por descripcion..."
+                placeholder="Buscar por descripción..."
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);

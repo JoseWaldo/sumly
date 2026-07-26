@@ -1,14 +1,23 @@
-import { X } from "lucide-react";
+import { X, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface DeleteTransactionDialogProps {
+interface DeleteSubscriptionDialogProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
   isLoading?: boolean;
+  subscriptionName?: string;
+  subscriptionAmount?: string;
 }
 
-export function DeleteTransactionDialog({ open, onClose, onConfirm, isLoading }: DeleteTransactionDialogProps) {
+export function DeleteSubscriptionDialog({
+  open,
+  onClose,
+  onConfirm,
+  isLoading,
+  subscriptionName,
+  subscriptionAmount,
+}: DeleteSubscriptionDialogProps) {
   if (!open) return null;
 
   return (
@@ -20,7 +29,7 @@ export function DeleteTransactionDialog({ open, onClose, onConfirm, isLoading }:
     >
       <div className="w-full max-w-md rounded-xl border border-border/30 bg-card p-6 shadow-lg animate-scale-in">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-medium">Eliminar movimiento</h2>
+          <h2 className="text-base font-medium">Eliminar suscripción</h2>
           <button
             type="button"
             onClick={onClose}
@@ -30,8 +39,20 @@ export function DeleteTransactionDialog({ open, onClose, onConfirm, isLoading }:
           </button>
         </div>
 
-        <p className="text-sm text-muted-foreground mb-6">
-          ¿Estás seguro de que deseas eliminar este movimiento? Esta acción no se puede deshacer.
+        <div className="mb-2 flex items-start gap-3 rounded-lg border border-chart-4/20 bg-chart-4/5 p-3">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-chart-4" />
+          <div className="text-sm">
+            <p className="font-medium">
+              {subscriptionName ? `¿Eliminar "${subscriptionName}"?` : "¿Eliminar esta suscripción?"}
+            </p>
+            {subscriptionAmount && (
+              <p className="mt-0.5 text-muted-foreground">{subscriptionAmount}</p>
+            )}
+          </div>
+        </div>
+
+        <p className="mb-6 text-sm text-muted-foreground">
+          Esta acción no se puede deshacer. Se eliminará la suscripción y todo su historial de pagos.
         </p>
 
         <div className="flex justify-end gap-2">

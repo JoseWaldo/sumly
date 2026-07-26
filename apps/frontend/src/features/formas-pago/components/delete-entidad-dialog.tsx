@@ -19,7 +19,7 @@ export function DeleteEntidadDialog({
   return (
     <FormaPagoDialog open={open} onClose={onClose} title="Eliminar entidad financiera">
       <p className="text-sm text-muted-foreground">
-        Estas seguro de que deseas eliminar &quot;{entidadName}&quot;? Esta accion no se puede deshacer.
+        ¿Estás seguro de que deseas eliminar &quot;{entidadName}&quot;? Esta acción no se puede deshacer.
       </p>
       <div className="mt-6 flex justify-end gap-2">
         <Button variant="outline" onClick={onClose} disabled={isLoading}>

@@ -52,12 +52,12 @@ export function RegisterForm() {
   }
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-sm animate-slide-in-bottom">
       <CardHeader className="text-center">
         <AppLogo showText={false} className="mb-2 justify-center" />
         <CardTitle className="text-xl">Crear cuenta</CardTitle>
         <CardDescription>
-          Registrate para empezar a gestionar tus finanzas.
+          Regístrate para empezar a gestionar tus finanzas.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -81,7 +81,7 @@ export function RegisterForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Correo electronico</FormLabel>
+                  <FormLabel>Correo electrónico</FormLabel>
                   <FormControl>
                     <Input placeholder="correo@ejemplo.com" type="email" {...field} />
                   </FormControl>
@@ -107,7 +107,7 @@ export function RegisterForm() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirmar contrasena</FormLabel>
+                  <FormLabel>Confirmar contraseña</FormLabel>
                   <FormControl>
                     <Input placeholder="******" type="password" {...field} />
                   </FormControl>
@@ -130,7 +130,7 @@ export function RegisterForm() {
         <p className="text-sm text-muted-foreground">
           Ya tienes cuenta?{" "}
           <Link to="/auth/login" className="font-medium text-primary underline hover:opacity-80">
-            Inicia sesion
+            Inicia sesión
           </Link>
         </p>
       </CardFooter>

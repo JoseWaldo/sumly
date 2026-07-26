@@ -41,7 +41,7 @@ export function PaymentMethodDetailModal({ open, onClose, formaPago }: PaymentMe
         if (e.target === overlayRef.current) onClose();
       }}
     >
-      <div className="w-[98%] max-w-sm overflow-hidden rounded-xl border border-border/30 bg-card shadow-lg sm:w-full">
+      <div className="w-[98%] max-w-sm overflow-hidden rounded-xl border border-border/30 bg-card shadow-lg sm:w-full animate-scale-in">
         <div
           className="relative p-5 pb-8"
           style={{

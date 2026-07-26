@@ -45,7 +45,7 @@ export function ReportPaymentDialog({ open, onClose, subscription, onSubmit, isL
         if (e.target === overlayRef.current) onClose();
       }}
     >
-      <div className="w-[98%] max-w-sm max-h-[90vh] overflow-y-auto rounded-xl border border-border/30 bg-card p-6 shadow-lg sm:w-full">
+      <div className="w-[98%] max-w-sm max-h-[90vh] overflow-y-auto rounded-xl border border-border/30 bg-card p-6 shadow-lg sm:w-full animate-scale-in">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-medium">Reportar pago</h2>
           <button
@@ -70,7 +70,7 @@ export function ReportPaymentDialog({ open, onClose, subscription, onSubmit, isL
             <p className="mb-2 text-sm font-medium">Fecha del pago</p>
             <DateInput value={date} onChange={setDate} />
             <p className="mt-1 text-xs text-muted-foreground">
-              Se registrara como un gasto en la categoria Suscripciones
+              Se registrará como un gasto en la categoría Suscripciones
             </p>
           </div>
 

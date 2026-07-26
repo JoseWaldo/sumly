@@ -13,3 +13,6 @@ bun.lockb
 
 # Turbo
 .turbo
+
+# Generated files
+.impeccable/

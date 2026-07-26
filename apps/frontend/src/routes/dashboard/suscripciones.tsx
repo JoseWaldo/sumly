@@ -3,12 +3,14 @@ import { useState, useRef } from "react";
 import { Plus, Repeat, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 import { Input } from "@/components/ui/input";
 import { SubscriptionCard } from "@/features/subscriptions/components/subscription-card";
 import { SubscriptionCardSkeleton } from "@/features/subscriptions/components/subscription-card-skeleton";
 import { SubscriptionDialog } from "@/features/subscriptions/components/subscription-dialog";
 import { ReportPaymentDialog } from "@/features/subscriptions/components/report-payment-dialog";
 import { PaymentMethodDetailModal } from "@/features/subscriptions/components/payment-method-detail-modal";
+import { DeleteSubscriptionDialog } from "@/features/subscriptions/components/delete-subscription-dialog";
 import {
   useSubscriptions,
   useTags,
@@ -43,6 +45,7 @@ function SuscripcionesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
   const [reportingSubscription, setReportingSubscription] = useState<Subscription | null>(null);
+  const [deletingSubscription, setDeletingSubscription] = useState<Subscription | null>(null);
   const [detailFormaPago, setDetailFormaPago] = useState<SubscriptionFormaPago | null>(null);
 
   const { data, isLoading } = useSubscriptions({
@@ -58,6 +61,7 @@ function SuscripcionesPage() {
   const updateSubscription = useUpdateSubscription();
   const deleteSubscription = useDeleteSubscription();
   const reportPayment = useReportPayment();
+  const { toast } = useToast();
 
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const handleSearchChange = (value: string) => {
@@ -76,6 +80,7 @@ function SuscripcionesPage() {
       formaPagoId: data.formaPagoId,
       tagIds: data.tagIds,
     });
+    toast("Suscripción creada");
     setDialogOpen(false);
   };
 
@@ -93,16 +98,20 @@ function SuscripcionesPage() {
         tagIds: data.tagIds,
       },
     });
+    toast("Suscripción actualizada");
     setEditingSubscription(null);
   };
 
   const handleDelete = async (id: string) => {
     await deleteSubscription.mutateAsync(id);
+    toast("Suscripción eliminada");
+    setDeletingSubscription(null);
   };
 
   const handleReport = async (date: string) => {
     if (!reportingSubscription) return;
     await reportPayment.mutateAsync({ id: reportingSubscription.id, date });
+    toast("Pago registrado");
     setReportingSubscription(null);
   };
 
@@ -116,7 +125,7 @@ function SuscripcionesPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Suscripciones</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Suscripciones</h2>
           <p className="text-muted-foreground">Gestiona tus suscripciones y registra sus pagos.</p>
         </div>
         <Button onClick={() => setDialogOpen(true)}>
@@ -129,7 +138,7 @@ function SuscripcionesPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <Input
-            placeholder="Buscar suscripcion..."
+            placeholder="Buscar suscripción..."
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-8"
@@ -196,7 +205,7 @@ function SuscripcionesPage() {
           <Repeat className="mb-3 h-12 w-12 opacity-20" />
           <p className="text-sm">No tienes suscripciones registradas</p>
           <p className="mt-1 text-xs">
-            Agrega tu primera suscripcion para empezar a gestionar tus pagos recurrentes.
+            Agrega tu primera suscripción para empezar a gestionar tus pagos recurrentes.
           </p>
           <Button
             variant="outline"
@@ -205,7 +214,7 @@ function SuscripcionesPage() {
             onClick={() => setDialogOpen(true)}
           >
             <Plus className="mr-1.5 h-3.5 w-3.5" />
-            Nueva suscripcion
+          Nueva suscripción
           </Button>
         </div>
       ) : (
@@ -215,7 +224,10 @@ function SuscripcionesPage() {
               key={subscription.id}
               subscription={subscription}
               onEdit={openEdit}
-              onDelete={handleDelete}
+              onDelete={(id) => {
+                const sub = subscriptions.find((s) => s.id === id) ?? null;
+                setDeletingSubscription(sub);
+              }}
               onReport={setReportingSubscription}
               onViewPaymentMethod={setDetailFormaPago}
             />
@@ -250,6 +262,17 @@ function SuscripcionesPage() {
         open={detailFormaPago !== null}
         onClose={() => setDetailFormaPago(null)}
         formaPago={detailFormaPago}
+      />
+
+      <DeleteSubscriptionDialog
+        open={deletingSubscription !== null}
+        onClose={() => setDeletingSubscription(null)}
+        onConfirm={() => {
+          if (deletingSubscription) handleDelete(deletingSubscription.id);
+        }}
+        isLoading={deleteSubscription.isPending}
+        subscriptionName={deletingSubscription?.name}
+        subscriptionAmount={deletingSubscription ? `$${deletingSubscription.amount.toLocaleString("es-CO")} / mes` : undefined}
       />
     </div>
   );

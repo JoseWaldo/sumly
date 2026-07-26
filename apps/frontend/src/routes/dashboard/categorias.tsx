@@ -110,7 +110,7 @@ function CategoriasPage() {
         </div>
         <Button onClick={openCreate}>
           <Plus className="h-4 w-4" />
-          Nueva categoria
+          Nueva categoría
         </Button>
       </div>
 
@@ -138,7 +138,7 @@ function CategoriasPage() {
           <Input
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Buscar categoria..."
+            placeholder="Buscar categoría..."
             className="pl-9 pr-8"
           />
           {search && (
@@ -156,7 +156,7 @@ function CategoriasPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            {total} categoria{total !== 1 ? "s" : ""}
+            {total} categoría{total !== 1 ? "s" : ""}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -179,7 +179,7 @@ function CategoriasPage() {
       <Dialog
         open={formOpen}
         onClose={closeForm}
-        title={editingCategory ? "Editar categoria" : "Nueva categoria"}
+        title={editingCategory ? "Editar categoría" : "Nueva categoría"}
       >
         <CategoryForm
           defaultValues={editingCategory}

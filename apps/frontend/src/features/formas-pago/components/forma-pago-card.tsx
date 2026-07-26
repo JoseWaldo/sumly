@@ -152,7 +152,7 @@ export function FormaPagoCard({ formaPago, onEdit, onDelete }: FormaPagoCardProp
                   className="flex h-7 w-7 items-center justify-center rounded-md bg-black/20 text-white/80 hover:bg-black/40 cursor-pointer"
                 >
                   {copied ? (
-                    <span className="text-[10px] font-bold text-green-300">OK</span>
+                    <span className="text-[10px] font-semibold text-green-300">OK</span>
                   ) : (
                     <Copy className="h-3.5 w-3.5" />
                   )}

@@ -116,7 +116,7 @@ function DashboardIndex() {
           <Card
             key={title}
             className={cn(
-              "group border-t-2 border-t-transparent transition-colors hover:border-primary/20",
+              "group border-t-2 border-t-transparent transition-all duration-300 hover:border-primary/20 hover:-translate-y-0.5",
               accentClass
             )}
           >
@@ -197,7 +197,7 @@ function DashboardIndex() {
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">
-                          {tx.description || tx.category?.name || "Sin descripcion"}
+                          {tx.description || tx.category?.name || "Sin descripción"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {tx.category?.name} &middot;{" "}
@@ -247,7 +247,7 @@ function DashboardIndex() {
                 </svg>
                 <p className="text-sm">Sin datos para mostrar</p>
                 <p className="mt-1 text-xs">
-                  El grafico aparecera cuando registres gastos.
+                  El gráfico aparecerá cuando registres gastos.
                 </p>
               </div>
             ) : (

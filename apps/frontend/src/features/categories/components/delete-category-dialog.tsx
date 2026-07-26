@@ -17,9 +17,9 @@ export function DeleteCategoryDialog({
   isLoading,
 }: DeleteCategoryDialogProps) {
   return (
-    <Dialog open={open} onClose={onClose} title="Eliminar categoria">
+    <Dialog open={open} onClose={onClose} title="Eliminar categoría">
       <p className="text-sm text-muted-foreground">
-        Estas seguro de que deseas eliminar la categoria &quot;{categoryName}&quot;? Esta accion no se puede deshacer.
+        ¿Estás seguro de que deseas eliminar la categoría &quot;{categoryName}&quot;? Esta acción no se puede deshacer.
       </p>
       <div className="mt-6 flex justify-end gap-2">
         <Button variant="outline" onClick={onClose} disabled={isLoading}>

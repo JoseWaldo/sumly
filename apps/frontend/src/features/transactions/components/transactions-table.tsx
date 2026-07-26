@@ -110,14 +110,14 @@ export function TransactionsTable({
           const amount = getValue<number>();
           const type = row.original.category?.type;
           return (
-            <span
-              className={cn(
-                "text-sm font-medium tabular-nums",
-                type === "INCOME"
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-red-600 dark:text-red-400"
-              )}
-            >
+              <span
+                className={cn(
+                  "text-sm font-medium tabular-nums",
+                  type === "INCOME"
+                    ? "text-chart-2"
+                    : "text-chart-4"
+                )}
+              >
               {type === "INCOME" ? "+" : "-"}
               {formatCurrencyCOP(amount)}
             </span>

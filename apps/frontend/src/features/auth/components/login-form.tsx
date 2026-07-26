@@ -50,10 +50,10 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-sm animate-slide-in-bottom">
       <CardHeader className="text-center">
         <AppLogo showText={false} className="mb-2 justify-center" />
-        <CardTitle className="text-xl">Iniciar sesion</CardTitle>
+        <CardTitle className="text-xl">Iniciar sesión</CardTitle>
         <CardDescription>
           Ingresa tus credenciales para acceder a tu cuenta.
         </CardDescription>
@@ -66,7 +66,7 @@ export function LoginForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Correo electronico</FormLabel>
+                  <FormLabel>Correo electrónico</FormLabel>
                   <FormControl>
                     <Input placeholder="correo@ejemplo.com" type="email" {...field} />
                   </FormControl>
@@ -93,7 +93,7 @@ export function LoginForm() {
               </p>
             )}
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || isLoading}>
-              {form.formState.isSubmitting || isLoading ? "Cargando..." : "Iniciar sesion"}
+              {form.formState.isSubmitting || isLoading ? "Cargando..." : "Iniciar sesión"}
             </Button>
           </form>
         </Form>
@@ -102,7 +102,7 @@ export function LoginForm() {
         <p className="text-sm text-muted-foreground">
           No tienes cuenta?{" "}
           <Link to="/auth/register" className="font-medium text-primary underline hover:opacity-80">
-            Registrate
+            Regístrate
           </Link>
         </p>
       </CardFooter>

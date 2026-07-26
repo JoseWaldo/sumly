@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Provider as JotaiProvider } from "jotai";
 
 import { ThemeProvider } from "@/components/shared/theme-provider";
+import { ToastProvider } from "@/components/ui/toast";
 import { routeTree } from "./routeTree.gen";
 
 const queryClient = new QueryClient();
@@ -19,7 +20,9 @@ export default function App() {
     <JotaiProvider>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <RouterProvider router={router} />
+          <ToastProvider>
+            <RouterProvider router={router} />
+          </ToastProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </JotaiProvider>

@@ -66,6 +66,7 @@ Una sola familia sans para todo el texto, con restricción deliberada de pesos: 
 **Reglas de peso:**
 - El **400 (Regular)** domina el 90% del contenido.
 - El **500 (Medium)** se reserva exclusivamente para elementos interactivos (botones, links del menú).
+- El **600 (Semibold)** se permite únicamente en títulos de página (`<h2>`) y en el logotipo, para dar scanabilidad sin la pesadez del bold.
 - **No se usa 700 (Bold)** en ningún punto.
 
 ---

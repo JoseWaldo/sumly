@@ -29,7 +29,7 @@ function DashboardLayout() {
       />
 
       <main
-        className={`flex-1 min-w-0 p-4 md:p-6 transition-all duration-300 overflow-x-hidden ${
+        className={`flex-1 min-w-0 p-4 md:p-6 transition-all duration-300 overflow-x-hidden animate-fade-in ${
           collapsed ? "md:ml-16" : "md:ml-60"
         }`}
       >

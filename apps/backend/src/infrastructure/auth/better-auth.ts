@@ -12,7 +12,12 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
-  trustedOrigins: ["http://localhost:5173"],
+  trustedOrigins: [
+    "http://localhost:5173",
+    "http://localhost:8080",
+    "https://app.sumly.nytrolabs.net",
+    "https://dev.app.sumly.nytrolabs.net",
+  ],
   databaseHooks: {
     user: {
       create: {

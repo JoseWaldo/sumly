@@ -212,3 +212,9 @@ Existen tres archivos Docker Compose para cada entorno:
 | `docker-compose.prod.yml` | Producción | `ghcr.io/josewaldo/sumly-backend:latest` / `sumly-frontend:latest` |
 
 Ver [CICD.md](./CICD.md) para el pipeline completo de CI/CD con GitHub Actions.
+
+---
+
+## Licencia
+
+MIT © 2025 Jose Waldo. Ver [LICENSE](./LICENSE).

@@ -1,5 +1,5 @@
 import { prisma } from "@/db";
-import type { PrismaClient, Prisma } from "@/prisma";
+import type { PrismaClient } from "@/prisma";
 import type {
   ICategoryRepository,
   CreateCategoryInput,
@@ -8,6 +8,7 @@ import type {
 } from "@/domain/repositories/category.repository";
 import type { CategoryEntity } from "@/domain/entities/category.entity";
 import type { PaginatedResult } from "@/shared/types";
+import type { CategoryListRow, SpListResult } from "@/domain/types/sp-row-types";
 
 export class CategoryPrismaRepository implements ICategoryRepository {
   private db: PrismaClient;
@@ -17,36 +18,43 @@ export class CategoryPrismaRepository implements ICategoryRepository {
   }
 
   async findAllByUser(filters: FindCategoriesFilters): Promise<PaginatedResult<CategoryEntity>> {
-    const where: Prisma.CategoryWhereInput = {
-      OR: [{ userId: null }, { userId: filters.userId }],
-      ...(filters.type && { type: filters.type }),
-      ...(filters.search && { name: { contains: filters.search, mode: "insensitive" } }),
-    };
+    const rows = await this.db.$queryRaw<[{ sp_list_tbl_categories: SpListResult<CategoryListRow> }]>`
+      SELECT sp_list_tbl_categories(
+        ${filters.userId}::TEXT,
+        ${filters.search || null}::TEXT,
+        ${filters.page}::INT,
+        ${filters.limit}::INT,
+        ${filters.sortBy || null}::TEXT,
+        ${filters.sortDir || null}::TEXT,
+        ${filters.type || null}::TEXT
+      )
+    `;
 
-    const [categories, total] = await Promise.all([
-      this.db.category.findMany({
-        where,
-        orderBy: [{ userId: { sort: "asc", nulls: "first" } }, { name: "asc" }],
-        skip: (filters.page - 1) * filters.limit,
-        take: filters.limit,
-      }),
-      this.db.category.count({ where }),
-    ]);
+    const result = rows[0]?.sp_list_tbl_categories;
+
+    if (!result) {
+      return { data: [], total: 0, page: filters.page, limit: filters.limit, totalPages: 0 };
+    }
 
     return {
-      data: categories.map(this.toEntity),
-      total,
+      data: (result.data ?? []).map((row) => ({
+        id: row.id,
+        name: row.name,
+        type: row.type,
+        icon: row.icon,
+        userId: row.userId,
+        createdAt: new Date(row.createdAt),
+        updatedAt: new Date(row.updatedAt),
+      })),
+      total: Number(result.total),
       page: filters.page,
       limit: filters.limit,
-      totalPages: Math.ceil(total / filters.limit),
+      totalPages: result.totalPages,
     };
   }
 
   async findById(id: string): Promise<CategoryEntity | null> {
-    const category = await this.db.category.findUnique({
-      where: { id },
-    });
-
+    const category = await this.db.category.findUnique({ where: { id } });
     return category ? this.toEntity(category) : null;
   }
 
@@ -59,7 +67,6 @@ export class CategoryPrismaRepository implements ICategoryRepository {
         userId: data.userId,
       },
     });
-
     return this.toEntity(category);
   }
 
@@ -72,14 +79,11 @@ export class CategoryPrismaRepository implements ICategoryRepository {
         ...(data.icon !== undefined && { icon: data.icon }),
       },
     });
-
     return this.toEntity(category);
   }
 
   async delete(id: string): Promise<void> {
-    await this.db.category.delete({
-      where: { id },
-    });
+    await this.db.category.delete({ where: { id } });
   }
 
   private toEntity(row: {

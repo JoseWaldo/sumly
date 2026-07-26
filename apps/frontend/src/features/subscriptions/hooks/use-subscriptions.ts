@@ -13,15 +13,19 @@ interface UseSubscriptionsParams {
   search?: string;
   page: number;
   limit: number;
+  sortBy?: string;
+  sortDir?: "asc" | "desc";
 }
 
-function useSubscriptions({ status, tagId, search, page, limit }: UseSubscriptionsParams) {
+function useSubscriptions({ status, tagId, search, page, limit, sortBy, sortDir }: UseSubscriptionsParams) {
   const queryParams: Record<string, string> = {};
   if (status) queryParams["status"] = status;
   if (tagId) queryParams["tagId"] = tagId;
   if (search) queryParams["search"] = search;
   queryParams["page"] = String(page);
   queryParams["limit"] = String(limit);
+  if (sortBy) queryParams["sortBy"] = sortBy;
+  if (sortDir) queryParams["sortDir"] = sortDir;
 
   return useQuery({
     queryKey: ["subscriptions", queryParams],

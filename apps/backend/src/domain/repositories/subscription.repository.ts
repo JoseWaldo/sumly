@@ -8,6 +8,8 @@ export interface FindSubscriptionsFilters {
   search?: string;
   page: number;
   limit: number;
+  sortBy?: string;
+  sortDir?: "asc" | "desc";
 }
 
 export interface CreateSubscriptionInput {

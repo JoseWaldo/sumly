@@ -4,11 +4,17 @@ import type { PaginatedResult } from "@/shared/types";
 export interface FindTransactionsFilters {
   userId: string;
   type?: "INCOME" | "EXPENSE";
+  categoryId?: string;
+  formaPagoId?: string;
   month?: number;
   year?: number;
+  dateFrom?: string;
+  dateTo?: string;
   search?: string;
   page: number;
   limit: number;
+  sortBy?: string;
+  sortDir?: "asc" | "desc";
 }
 
 export interface CreateTransactionInput {
@@ -16,6 +22,7 @@ export interface CreateTransactionInput {
   date: Date;
   description?: string;
   categoryId: string;
+  formaPagoId: string;
   userId: string;
 }
 
@@ -24,6 +31,7 @@ export interface UpdateTransactionInput {
   date?: Date;
   description?: string;
   categoryId?: string;
+  formaPagoId?: string;
 }
 
 export interface DashboardSummary {

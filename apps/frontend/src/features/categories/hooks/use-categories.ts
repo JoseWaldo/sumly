@@ -5,17 +5,21 @@ import type { Category, PaginatedCategories } from "@/features/categories/schema
 interface UseCategoriesParams {
   type?: "INCOME" | "EXPENSE";
   search?: string;
+  sortBy?: string;
+  sortDir?: "asc" | "desc";
   page: number;
   limit: number;
 }
 
-function useCategories({ type, search, page, limit }: UseCategoriesParams) {
+function useCategories({ type, search, sortBy, sortDir, page, limit }: UseCategoriesParams) {
   return useQuery({
-    queryKey: ["categories", { type, search, page, limit }],
+    queryKey: ["categories", { type, search, sortBy, sortDir, page, limit }],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (type) params.set("type", type);
       if (search) params.set("search", search);
+      if (sortBy) params.set("sortBy", sortBy);
+      if (sortDir) params.set("sortDir", sortDir);
       params.set("page", String(page));
       params.set("limit", String(limit));
       return apiClient<PaginatedCategories>(`/api/v1/categories?${params.toString()}`);

@@ -33,6 +33,7 @@ export class ReportPaymentUseCase {
         date: paymentDate,
         description: subscription.name,
         categoryId: suscripcionesCategory.id,
+        formaPagoId: subscription.formaPago.id,
         userId,
       },
     });

@@ -1,5 +1,5 @@
 import { Link, useLocation, useRouter } from "@tanstack/react-router";
-import { LayoutDashboard, Wallet, TrendingDown, Building2, CreditCard, Repeat, Tags, LogOut, ChevronLeft, ChevronRight, X, UserRound } from "lucide-react";
+import { LayoutDashboard, History, Building2, CreditCard, Repeat, Tags, LogOut, ChevronLeft, ChevronRight, X, UserRound } from "lucide-react";
 
 import { AppLogo } from "@/components/shared/app-logo";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -14,15 +14,9 @@ const navItems = [
     exact: true,
   },
   {
-    to: "/dashboard/ingresos",
-    icon: Wallet,
-    label: "Ingresos",
-    group: "Movimientos",
-  },
-  {
-    to: "/dashboard/gastos",
-    icon: TrendingDown,
-    label: "Gastos",
+    to: "/dashboard/historial",
+    icon: History,
+    label: "Historial",
     group: "Movimientos",
   },
   {

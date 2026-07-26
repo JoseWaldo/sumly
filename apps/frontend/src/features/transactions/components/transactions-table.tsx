@@ -1,13 +1,4 @@
 import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  type SortingState,
-  type ColumnDef,
-  flexRender,
-} from "@tanstack/react-table";
-import { useMemo, useState } from "react";
-import {
   Pencil,
   Trash2,
   ArrowUpDown,
@@ -24,9 +15,40 @@ interface TransactionsTableProps {
   page: number;
   totalPages: number;
   total: number;
+  sortBy?: string;
+  sortDir?: "asc" | "desc";
+  onSort?: (column: string) => void;
   onPageChange: (page: number) => void;
   onEdit: (transaction: Transaction) => void;
   onDelete: (transaction: Transaction) => void;
+}
+
+type SortableHeaderProps = {
+  column: string;
+  label: string;
+  currentSortBy?: string;
+  currentSortDir?: string;
+  onSort?: (column: string) => void;
+  className?: string;
+};
+
+function SortableHeader({ column, label, currentSortBy, currentSortDir: _currentSortDir, onSort, className }: SortableHeaderProps) {
+  const isActive = currentSortBy === column;
+  return (
+    <button
+      type="button"
+      onClick={() => onSort?.(column)}
+      className={cn(
+        "flex items-center gap-1 text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground",
+        className
+      )}
+    >
+      {label}
+      <ArrowUpDown
+        className={cn("h-3 w-3", isActive && "text-primary")}
+      />
+    </button>
+  );
 }
 
 export function TransactionsTable({
@@ -34,171 +56,152 @@ export function TransactionsTable({
   page,
   totalPages,
   total,
+  sortBy,
+  sortDir,
+  onSort,
   onPageChange,
   onEdit,
   onDelete,
 }: TransactionsTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-
-  const columns = useMemo<ColumnDef<Transaction>[]>(
-    () => [
-      {
-        id: "date",
-        accessorKey: "date",
-        header: ({ column }) => (
-          <button
-            type="button"
-            onClick={() => column.toggleSorting()}
-            className="flex items-center gap-1 text-xs font-medium text-muted-foreground cursor-pointer"
-          >
-            Fecha
-            <ArrowUpDown className="h-3 w-3" />
-          </button>
-        ),
-        cell: ({ getValue }) => {
-          const dateStr = getValue<string>();
-          return <span className="text-sm">{formatDateCol(dateStr, "dd MMM yyyy")}</span>;
-        },
-        size: 140,
-      },
-      {
-        id: "category",
-        accessorKey: "category",
-        header: "Categoria",
-        cell: ({ getValue }) => {
-          const category = getValue<Transaction["category"]>();
-          if (!category) return <span className="text-sm text-muted-foreground">—</span>;
-          return (
-            <div className="flex items-center gap-1.5">
-              <LazyIcon name={category.icon} className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">{category.name}</span>
-            </div>
-          );
-        },
-        size: 180,
-        enableSorting: false,
-      },
-      {
-        id: "description",
-        accessorKey: "description",
-        header: "Descripcion",
-        cell: ({ getValue }) => {
-          const desc = getValue<string | null>();
-          return (
-            <span className="text-sm text-muted-foreground">
-              {desc || "—"}
-            </span>
-          );
-        },
-        size: 200,
-        enableSorting: false,
-      },
-      {
-        id: "amount",
-        accessorKey: "amount",
-        header: ({ column }) => (
-          <button
-            type="button"
-            onClick={() => column.toggleSorting()}
-            className="flex items-center gap-1 text-xs font-medium text-muted-foreground cursor-pointer ml-auto"
-          >
-            Monto
-            <ArrowUpDown className="h-3 w-3" />
-          </button>
-        ),
-        cell: ({ getValue, row }) => {
-          const amount = getValue<number>();
-          const type = row.original.category?.type;
-          return (
-              <span
-                className={cn(
-                  "text-sm font-medium tabular-nums",
-                  type === "INCOME"
-                    ? "text-chart-2"
-                    : "text-chart-4"
-                )}
-              >
-              {type === "INCOME" ? "+" : "-"}
-              {formatCurrencyCOP(amount)}
-            </span>
-          );
-        },
-        size: 130,
-      },
-      {
-        id: "actions",
-        header: "",
-        cell: ({ row }) => {
-          const transaction = row.original;
-          return (
-            <div className="flex items-center justify-end gap-1">
-              <button
-                type="button"
-                onClick={() => onEdit(transaction)}
-                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
-                title="Editar"
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => onDelete(transaction)}
-                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer"
-                title="Eliminar"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          );
-        },
-        size: 80,
-        enableSorting: false,
-      },
-    ],
-    [onEdit, onDelete]
-  );
-
-  const table = useReactTable({
-    data: transactions,
-    columns,
-    state: { sorting },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  });
-
   return (
     <div>
       <div className="overflow-x-auto max-w-[calc(100vw-2rem)] md:max-w-none">
         <table className="w-full">
           <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="border-b border-border/30">
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="px-4 py-3 text-left text-xs font-medium text-muted-foreground"
-                    style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
-                  >
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </th>
-                ))}
-              </tr>
-            ))}
+            <tr className="border-b border-border/30">
+              <th className="px-4 py-3 text-left" style={{ width: 60 }}>
+                <span className="text-xs font-medium text-muted-foreground">Tipo</span>
+              </th>
+              <th className="px-4 py-3 text-left" style={{ width: 130 }}>
+                <SortableHeader
+                  column="date"
+                  label="Fecha"
+                  currentSortBy={sortBy}
+                  currentSortDir={sortDir}
+                  onSort={onSort}
+                />
+              </th>
+              <th className="px-4 py-3 text-left" style={{ width: 160 }}>
+                <SortableHeader
+                  column="category"
+                  label="Categoria"
+                  currentSortBy={sortBy}
+                  currentSortDir={sortDir}
+                  onSort={onSort}
+                />
+              </th>
+              <th className="px-4 py-3 text-left" style={{ width: 180 }}>
+                <span className="text-xs font-medium text-muted-foreground">Descripcion</span>
+              </th>
+              <th className="px-4 py-3 text-left" style={{ width: 140 }}>
+                <SortableHeader
+                  column="forma_pago"
+                  label="Forma de pago"
+                  currentSortBy={sortBy}
+                  currentSortDir={sortDir}
+                  onSort={onSort}
+                />
+              </th>
+              <th className="px-4 py-3 text-right" style={{ width: 120 }}>
+                <SortableHeader
+                  column="amount"
+                  label="Monto"
+                  currentSortBy={sortBy}
+                  currentSortDir={sortDir}
+                  onSort={onSort}
+                  className="ml-auto"
+                />
+              </th>
+              <th className="px-4 py-3 text-right" style={{ width: 70 }} />
+            </tr>
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr
-                key={row.id}
-                className="border-b border-border/20 transition-colors hover:bg-accent/30 last:border-0"
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-4 py-3">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            {transactions.map((tx) => {
+              const type = tx.category?.type;
+              return (
+                <tr
+                  key={tx.id}
+                  className="border-b border-border/20 transition-colors hover:bg-accent/30 last:border-0"
+                >
+                  <td className="px-4 py-3">
+                    <span
+                      className={cn(
+                        "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase",
+                        type === "INCOME"
+                          ? "bg-chart-2/10 text-chart-2"
+                          : "bg-chart-4/10 text-chart-4"
+                      )}
+                    >
+                      {type === "INCOME" ? "Ingreso" : "Gasto"}
+                    </span>
                   </td>
-                ))}
-              </tr>
-            ))}
+                  <td className="px-4 py-3">
+                    <span className="text-sm">{formatDateCol(tx.date, "dd MMM yyyy")}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {tx.category ? (
+                      <div className="flex items-center gap-1.5">
+                        <LazyIcon name={tx.category.icon} className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{tx.category.name}</span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-sm text-muted-foreground">
+                      {tx.description || "—"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {tx.formaPago ? (
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="h-2.5 w-2.5 rounded-full shrink-0"
+                          style={{
+                            background: `linear-gradient(135deg, ${tx.formaPago.gradienteInicio}, ${tx.formaPago.gradienteFin})`,
+                          }}
+                        />
+                        <span className="text-sm truncate max-w-[100px]">{tx.formaPago.nombre}</span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <span
+                      className={cn(
+                        "text-sm font-medium tabular-nums",
+                        type === "INCOME" ? "text-chart-2" : "text-chart-4"
+                      )}
+                    >
+                      {type === "INCOME" ? "+" : "-"}
+                      {formatCurrencyCOP(tx.amount)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        type="button"
+                        onClick={() => onEdit(tx)}
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+                        title="Editar"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDelete(tx)}
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -231,9 +234,7 @@ export function TransactionsTable({
                 return false;
               })
               .reduce<(number | "ellipsis")[]>((acc, p, i, arr) => {
-                if (i > 0 && p - (arr[i - 1] as number) > 1) {
-                  acc.push("ellipsis");
-                }
+                if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("ellipsis");
                 acc.push(p);
                 return acc;
               }, [])

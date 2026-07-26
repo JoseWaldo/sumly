@@ -11,6 +11,7 @@ export class CreateTransactionUseCase {
       date: new Date(data.date),
       description: data.description,
       categoryId: data.categoryId,
+      formaPagoId: data.formaPagoId,
       userId,
     });
   }

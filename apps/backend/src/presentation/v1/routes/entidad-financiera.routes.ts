@@ -1,4 +1,6 @@
 import { Hono } from "hono";
+import { z } from "zod";
+
 import { authMiddleware } from "@/presentation/v1/middlewares/auth.middleware";
 import { EntidadFinancieraPrismaRepository } from "@/infrastructure/repositories/entidad-financiera-prisma.repository";
 import { GetEntidadesFinancierasUseCase } from "@/application/use-cases/entidad-financiera/get-entidades-financieras.use-case";
@@ -19,6 +21,8 @@ const createEntidad = new CreateEntidadFinancieraUseCase(repository);
 const updateEntidad = new UpdateEntidadFinancieraUseCase(repository);
 const deleteEntidad = new DeleteEntidadFinancieraUseCase(repository);
 
+const sortDirSchema = z.enum(["asc", "desc"]).optional();
+
 const router = new Hono();
 
 router.use("*", authMiddleware);
@@ -26,14 +30,21 @@ router.use("*", authMiddleware);
 router.get("/", async (c) => {
   const userId = c.get("user").id;
   const search = c.req.query("search");
+  const sortByRaw = c.req.query("sortBy");
+  const sortDirRaw = c.req.query("sortDir");
   const page = Math.max(1, Number(c.req.query("page")) || 1);
   const limit = Math.min(Math.max(1, Number(c.req.query("limit")) || 50), 100);
+
+  const sortBy = sortByRaw || undefined;
+  const sortDir = sortDirRaw ? sortDirSchema.parse(sortDirRaw) : undefined;
 
   const filters: FindEntidadesFinancierasFilters = {
     userId,
     search: search || undefined,
     page,
     limit,
+    sortBy,
+    sortDir,
   };
 
   const result = await getEntidades.execute(filters);

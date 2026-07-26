@@ -21,12 +21,14 @@ export class UpdateTransactionUseCase {
       date?: Date;
       description?: string;
       categoryId?: string;
+      formaPagoId?: string;
     } = {};
 
     if (data.amount !== undefined) updateData.amount = data.amount;
     if (data.date !== undefined) updateData.date = new Date(data.date);
     if (data.description !== undefined) updateData.description = data.description;
     if (data.categoryId !== undefined) updateData.categoryId = data.categoryId;
+    if (data.formaPagoId !== undefined) updateData.formaPagoId = data.formaPagoId;
 
     return this.repository.update(id, updateData);
   }

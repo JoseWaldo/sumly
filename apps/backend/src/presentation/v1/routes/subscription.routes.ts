@@ -32,6 +32,7 @@ const createTag = new CreateTagUseCase(repository);
 const deleteTag = new DeleteTagUseCase(repository);
 
 const subscriptionStatusSchema = z.enum(["ACTIVE", "PAUSED", "CANCELLED"]).optional();
+const sortDirSchema = z.enum(["asc", "desc"]).optional();
 
 const router = new Hono();
 
@@ -68,10 +69,14 @@ router.get("/", async (c) => {
   const statusRaw = c.req.query("status");
   const tagId = c.req.query("tagId");
   const search = c.req.query("search");
+  const sortByRaw = c.req.query("sortBy");
+  const sortDirRaw = c.req.query("sortDir");
   const page = Math.max(1, Number(c.req.query("page")) || 1);
   const limit = Math.min(Math.max(1, Number(c.req.query("limit")) || 12), 50);
 
   const status = statusRaw ? subscriptionStatusSchema.parse(statusRaw) : undefined;
+  const sortBy = sortByRaw || undefined;
+  const sortDir = sortDirRaw ? sortDirSchema.parse(sortDirRaw) : undefined;
 
   const filters: FindSubscriptionsFilters = {
     userId,
@@ -80,6 +85,8 @@ router.get("/", async (c) => {
     search: search || undefined,
     page,
     limit,
+    sortBy,
+    sortDir,
   };
 
   const result = await getSubscriptions.execute(filters);

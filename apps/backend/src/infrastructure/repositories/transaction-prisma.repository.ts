@@ -1,5 +1,5 @@
 import { prisma } from "@/db";
-import type { PrismaClient, Prisma } from "@/prisma";
+import type { PrismaClient } from "@/prisma";
 import type {
   ITransactionRepository,
   CreateTransactionInput,
@@ -10,6 +10,10 @@ import type {
 } from "@/domain/repositories/transaction.repository";
 import type { TransactionEntity } from "@/domain/entities/transaction.entity";
 import type { PaginatedResult } from "@/shared/types";
+import type {
+  TransactionListRow,
+  SpListResult,
+} from "@/domain/types/sp-row-types";
 
 export class TransactionPrismaRepository implements ITransactionRepository {
   private db: PrismaClient;
@@ -19,54 +23,56 @@ export class TransactionPrismaRepository implements ITransactionRepository {
   }
 
   async findAllByUser(filters: FindTransactionsFilters): Promise<PaginatedResult<TransactionEntity>> {
-    const where: Prisma.TransactionWhereInput = {
-      userId: filters.userId,
-      ...(filters.search && {
-        description: { contains: filters.search, mode: "insensitive" },
-      }),
-    };
+    let dateFrom: string | null = filters.dateFrom ?? null;
+    let dateTo: string | null = filters.dateTo ?? null;
 
-    if (filters.type) {
-      where.category = { type: filters.type };
-    }
-
-    if (filters.month !== undefined || filters.year !== undefined) {
+    if (!dateFrom && !dateTo) {
       const year = filters.year ?? new Date().getFullYear();
       if (filters.month !== undefined) {
-        const startDate = new Date(year, filters.month - 1, 1);
-        const endDate = new Date(year, filters.month, 1);
-        where.date = { gte: startDate, lt: endDate };
-      } else {
-        const startDate = new Date(year, 0, 1);
-        const endDate = new Date(year + 1, 0, 1);
-        where.date = { gte: startDate, lt: endDate };
+        dateFrom = `${year}-${String(filters.month).padStart(2, "0")}-01`;
+        const lastDay = new Date(year, filters.month, 0).getDate();
+        dateTo = `${year}-${String(filters.month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+      } else if (filters.year !== undefined) {
+        dateFrom = `${year}-01-01`;
+        dateTo = `${year}-12-31`;
       }
     }
 
-    const [transactions, total] = await Promise.all([
-      this.db.transaction.findMany({
-        where,
-        include: { category: true },
-        orderBy: { date: "desc" },
-        skip: (filters.page - 1) * filters.limit,
-        take: filters.limit,
-      }),
-      this.db.transaction.count({ where }),
-    ]);
+    const rows = await this.db.$queryRaw<[{ sp_list_tbl_transactions: SpListResult<TransactionListRow> }]>`
+      SELECT sp_list_tbl_transactions(
+        ${filters.userId}::TEXT,
+        ${filters.search || null}::TEXT,
+        ${filters.page}::INT,
+        ${filters.limit}::INT,
+        ${filters.sortBy || null}::TEXT,
+        ${filters.sortDir || null}::TEXT,
+        ${filters.type || null}::TEXT,
+        ${filters.categoryId || null}::TEXT,
+        ${filters.formaPagoId || null}::TEXT,
+        ${dateFrom}::DATE,
+        ${dateTo}::DATE
+      )
+    `;
+
+    const result = rows[0]?.sp_list_tbl_transactions;
+
+    if (!result) {
+      return { data: [], total: 0, page: filters.page, limit: filters.limit, totalPages: 0 };
+    }
 
     return {
-      data: transactions.map((t) => this.toEntity(t)),
-      total,
+      data: (result.data ?? []).map((row) => this.rowToEntity(row)),
+      total: Number(result.total),
       page: filters.page,
       limit: filters.limit,
-      totalPages: Math.ceil(total / filters.limit),
+      totalPages: result.totalPages,
     };
   }
 
   async findById(id: string): Promise<TransactionEntity | null> {
     const transaction = await this.db.transaction.findUnique({
       where: { id },
-      include: { category: true },
+      include: { category: true, formaPago: true },
     });
 
     return transaction ? this.toEntity(transaction) : null;
@@ -79,9 +85,10 @@ export class TransactionPrismaRepository implements ITransactionRepository {
         date: data.date,
         description: data.description ?? null,
         categoryId: data.categoryId,
+        formaPagoId: data.formaPagoId,
         userId: data.userId,
       },
-      include: { category: true },
+      include: { category: true, formaPago: true },
     });
 
     return this.toEntity(transaction);
@@ -95,17 +102,16 @@ export class TransactionPrismaRepository implements ITransactionRepository {
         ...(data.date !== undefined && { date: data.date }),
         ...(data.description !== undefined && { description: data.description }),
         ...(data.categoryId !== undefined && { categoryId: data.categoryId }),
+        ...(data.formaPagoId !== undefined && { formaPagoId: data.formaPagoId }),
       },
-      include: { category: true },
+      include: { category: true, formaPago: true },
     });
 
     return this.toEntity(transaction);
   }
 
   async delete(id: string): Promise<void> {
-    await this.db.transaction.delete({
-      where: { id },
-    });
+    await this.db.transaction.delete({ where: { id } });
   }
 
   async getDashboardSummary(userId: string): Promise<DashboardSummary> {
@@ -174,14 +180,14 @@ export class TransactionPrismaRepository implements ITransactionRepository {
 
     if (totalExpense === 0) return [];
 
-    const groupedByCategory = new Map<string, { categoryId: string; categoryName: string; categoryIcon: string; total: number }>();
+    const grouped = new Map<string, { categoryId: string; categoryName: string; categoryIcon: string; total: number }>();
 
     for (const t of transactions) {
-      const existing = groupedByCategory.get(t.categoryId);
+      const existing = grouped.get(t.categoryId);
       if (existing) {
         existing.total += Number(t.amount);
       } else {
-        groupedByCategory.set(t.categoryId, {
+        grouped.set(t.categoryId, {
           categoryId: t.categoryId,
           categoryName: t.category.name,
           categoryIcon: t.category.icon,
@@ -190,7 +196,7 @@ export class TransactionPrismaRepository implements ITransactionRepository {
       }
     }
 
-    return Array.from(groupedByCategory.values())
+    return Array.from(grouped.values())
       .map((item) => ({
         ...item,
         total: Math.round(item.total * 100) / 100,
@@ -199,12 +205,48 @@ export class TransactionPrismaRepository implements ITransactionRepository {
       .sort((a, b) => b.total - a.total);
   }
 
+  private rowToEntity(row: TransactionListRow): TransactionEntity {
+    return {
+      id: row.id,
+      amount: Number(row.amount),
+      date: new Date(row.date),
+      description: row.description,
+      categoryId: row.categoryId,
+      category: row.category
+        ? {
+            id: row.category.id,
+            name: row.category.name,
+            type: row.category.type,
+            icon: row.category.icon,
+            userId: row.category.userId,
+            createdAt: new Date(row.category.createdAt),
+            updatedAt: new Date(row.category.updatedAt),
+          }
+        : undefined,
+      formaPagoId: row.formaPagoId ?? "",
+      formaPago: row.formaPago
+        ? {
+            id: row.formaPago.id,
+            nombre: row.formaPago.nombre,
+            tipo: row.formaPago.tipo as "CREDIT" | "DEBIT" | "CASH",
+            ultimosCuatro: row.formaPago.ultimosCuatro,
+            gradienteInicio: row.formaPago.gradienteInicio,
+            gradienteFin: row.formaPago.gradienteFin,
+          }
+        : undefined,
+      userId: row.userId,
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
+    };
+  }
+
   private toEntity(row: {
     id: string;
     amount: { toString(): string };
     date: Date;
     description: string | null;
     categoryId: string;
+    formaPagoId: string;
     userId: string;
     createdAt: Date;
     updatedAt: Date;
@@ -216,6 +258,14 @@ export class TransactionPrismaRepository implements ITransactionRepository {
       userId: string | null;
       createdAt: Date;
       updatedAt: Date;
+    } | null;
+    formaPago?: {
+      id: string;
+      nombre: string;
+      tipo: string;
+      ultimosCuatro: string | null;
+      gradienteInicio: string;
+      gradienteFin: string;
     } | null;
   }): TransactionEntity {
     return {
@@ -233,6 +283,17 @@ export class TransactionPrismaRepository implements ITransactionRepository {
             userId: row.category.userId,
             createdAt: row.category.createdAt,
             updatedAt: row.category.updatedAt,
+          }
+        : undefined,
+      formaPagoId: row.formaPagoId,
+      formaPago: row.formaPago
+        ? {
+            id: row.formaPago.id,
+            nombre: row.formaPago.nombre,
+            tipo: row.formaPago.tipo as "CREDIT" | "DEBIT" | "CASH",
+            ultimosCuatro: row.formaPago.ultimosCuatro,
+            gradienteInicio: row.formaPago.gradienteInicio,
+            gradienteFin: row.formaPago.gradienteFin,
           }
         : undefined,
       userId: row.userId,

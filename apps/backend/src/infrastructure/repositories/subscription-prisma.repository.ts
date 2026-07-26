@@ -10,6 +10,7 @@ import type {
 } from "@/domain/repositories/subscription.repository";
 import type { SubscriptionEntity, SubscriptionTagEntity } from "@/domain/entities/subscription.entity";
 import type { PaginatedResult } from "@/shared/types";
+import type { SubscriptionListRow, SpListResult } from "@/domain/types/sp-row-types";
 import { ConflictError, NotFoundError, UnauthorizedError } from "@/shared/errors";
 
 export class SubscriptionPrismaRepository implements ISubscriptionRepository {
@@ -20,51 +21,31 @@ export class SubscriptionPrismaRepository implements ISubscriptionRepository {
   }
 
   async findAllByUser(filters: FindSubscriptionsFilters): Promise<PaginatedResult<SubscriptionEntity>> {
-    const where: Prisma.SubscriptionWhereInput = {
-      userId: filters.userId,
-      ...(filters.status && { status: filters.status }),
-      ...(filters.search && {
-        name: { contains: filters.search, mode: "insensitive" },
-      }),
-    };
+    const rows = await this.db.$queryRaw<[{ sp_list_tbl_subscriptions: SpListResult<SubscriptionListRow> }]>`
+      SELECT sp_list_tbl_subscriptions(
+        ${filters.userId}::TEXT,
+        ${filters.search || null}::TEXT,
+        ${filters.page}::INT,
+        ${filters.limit}::INT,
+        ${filters.sortBy || null}::TEXT,
+        ${filters.sortDir || null}::TEXT,
+        ${filters.status || null}::TEXT,
+        ${filters.tagId || null}::TEXT
+      )
+    `;
 
-    if (filters.tagId) {
-      const taggedSubs = await this.db.$queryRaw<{ A: string }[]>`
-        SELECT "A" FROM "_SubscriptionToSubscriptionTag" WHERE "B" = ${filters.tagId}
-      `;
+    const result = rows[0]?.sp_list_tbl_subscriptions;
 
-      const subscriptionIds = taggedSubs.map((r) => r.A);
-
-      if (subscriptionIds.length === 0) {
-        return {
-          data: [],
-          total: 0,
-          page: filters.page,
-          limit: filters.limit,
-          totalPages: 0,
-        };
-      }
-
-      where.id = { in: subscriptionIds };
+    if (!result) {
+      return { data: [], total: 0, page: filters.page, limit: filters.limit, totalPages: 0 };
     }
 
-    const [subscriptions, total] = await Promise.all([
-      this.db.subscription.findMany({
-        where,
-      include: { tags: true, formaPago: { include: { entidadFinanciera: true } } },
-      orderBy: { nextPaymentDate: "asc" },
-      skip: (filters.page - 1) * filters.limit,
-        take: filters.limit,
-      }),
-      this.db.subscription.count({ where }),
-    ]);
-
     return {
-      data: subscriptions.map((s) => this.toEntity(s)),
-      total,
+      data: (result.data ?? []).map((row) => this.rowToEntity(row)),
+      total: Number(result.total),
       page: filters.page,
       limit: filters.limit,
-      totalPages: Math.ceil(total / filters.limit),
+      totalPages: result.totalPages,
     };
   }
 
@@ -73,7 +54,6 @@ export class SubscriptionPrismaRepository implements ISubscriptionRepository {
       where: { id },
       include: { tags: true, formaPago: { include: { entidadFinanciera: true } } },
     });
-
     return subscription ? this.toEntity(subscription) : null;
   }
 
@@ -121,7 +101,6 @@ export class SubscriptionPrismaRepository implements ISubscriptionRepository {
       await this.db.$executeRaw`
         DELETE FROM "_SubscriptionToSubscriptionTag" WHERE "A" = ${id}
       `;
-
       if (data.tagIds.length > 0) {
         await this.db.$executeRaw`
           INSERT INTO "_SubscriptionToSubscriptionTag" ("A", "B")
@@ -134,9 +113,7 @@ export class SubscriptionPrismaRepository implements ISubscriptionRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.db.subscription.delete({
-      where: { id },
-    });
+    await this.db.subscription.delete({ where: { id } });
   }
 
   async getDashboardSummary(userId: string): Promise<SubscriptionDashboardSummary> {
@@ -170,7 +147,6 @@ export class SubscriptionPrismaRepository implements ISubscriptionRepository {
       where: { userId },
       orderBy: { name: "asc" },
     });
-
     return tags.map((t) => ({
       id: t.id,
       name: t.name,
@@ -185,17 +161,10 @@ export class SubscriptionPrismaRepository implements ISubscriptionRepository {
     const existing = await this.db.subscriptionTag.findFirst({
       where: { name: data.name, userId: data.userId },
     });
-
-    if (existing) {
-      throw new ConflictError("Ya tienes un tag con ese nombre");
-    }
+    if (existing) throw new ConflictError("Ya tienes un tag con ese nombre");
 
     const tag = await this.db.subscriptionTag.create({
-      data: {
-        name: data.name,
-        color: data.color,
-        userId: data.userId,
-      },
+      data: { name: data.name, color: data.color, userId: data.userId },
     });
 
     return {
@@ -209,21 +178,55 @@ export class SubscriptionPrismaRepository implements ISubscriptionRepository {
   }
 
   async deleteTag(id: string, userId: string): Promise<void> {
-    const tag = await this.db.subscriptionTag.findUnique({
-      where: { id },
-    });
+    const tag = await this.db.subscriptionTag.findUnique({ where: { id } });
+    if (!tag) throw new NotFoundError("Tag no encontrado");
+    if (tag.userId !== userId) throw new UnauthorizedError("No puedes eliminar un tag que no te pertenece");
+    await this.db.subscriptionTag.delete({ where: { id } });
+  }
 
-    if (!tag) {
-      throw new NotFoundError("Tag no encontrado");
-    }
-
-    if (tag.userId !== userId) {
-      throw new UnauthorizedError("No puedes eliminar un tag que no te pertenece");
-    }
-
-    await this.db.subscriptionTag.delete({
-      where: { id },
-    });
+  private rowToEntity(row: SubscriptionListRow): SubscriptionEntity {
+    return {
+      id: row.id,
+      name: row.name,
+      amount: Number(row.amount),
+      nextPaymentDate: new Date(row.nextPaymentDate),
+      frequency: row.frequency as SubscriptionEntity["frequency"],
+      status: row.status as SubscriptionEntity["status"],
+      userId: row.userId,
+      formaPago: row.formaPago
+        ? {
+            id: row.formaPago.id,
+            nombre: row.formaPago.nombre,
+            tipo: row.formaPago.tipo as SubscriptionEntity["formaPago"]["tipo"],
+            ultimosCuatro: row.formaPago.ultimosCuatro,
+            gradienteInicio: row.formaPago.gradienteInicio,
+            gradienteFin: row.formaPago.gradienteFin,
+            formatoNumero: row.formaPago.entidadFinanciera?.formatoNumero ?? null,
+            entidadFinancieraId: row.formaPago.entidadFinancieraId,
+            entidadFinancieraNombre: row.formaPago.entidadFinanciera?.nombre ?? null,
+          }
+        : {
+            id: "",
+            nombre: "",
+            tipo: "CASH" as const,
+            ultimosCuatro: null,
+            gradienteInicio: "#000000",
+            gradienteFin: "#000000",
+            formatoNumero: null,
+            entidadFinancieraId: null,
+            entidadFinancieraNombre: null,
+          },
+      tags: (row.tags ?? []).map((t) => ({
+        id: t.id,
+        name: t.name,
+        color: t.color,
+        userId: t.userId,
+        createdAt: new Date(t.createdAt),
+        updatedAt: new Date(t.updatedAt),
+      })),
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
+    };
   }
 
   private toEntity(row: {

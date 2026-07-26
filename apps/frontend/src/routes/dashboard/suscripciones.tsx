@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef } from "react";
-import { Plus, Repeat, Search } from "lucide-react";
+import { useState, useRef, useMemo } from "react";
+import { Plus, Repeat, Search, SlidersHorizontal, FilterX } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { Input } from "@/components/ui/input";
+import { FilterSheet } from "@/components/ui/filter-sheet";
 import { SubscriptionCard } from "@/features/subscriptions/components/subscription-card";
 import { SubscriptionCardSkeleton } from "@/features/subscriptions/components/subscription-card-skeleton";
 import { SubscriptionDialog } from "@/features/subscriptions/components/subscription-dialog";
@@ -37,11 +38,21 @@ const STATUS_FILTERS = [
   { value: "CANCELLED" as const, label: "Canceladas" },
 ];
 
+const SORT_OPTIONS = [
+  { value: "nextPaymentDate", label: "Fecha pago" },
+  { value: "name", label: "Nombre" },
+  { value: "amount", label: "Monto" },
+  { value: "status", label: "Estado" },
+];
+
 function SuscripcionesPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "PAUSED" | "CANCELLED" | undefined>(undefined);
   const [tagFilter, setTagFilter] = useState<string | undefined>(undefined);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sortBy, setSortBy] = useState("nextPaymentDate");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
   const [reportingSubscription, setReportingSubscription] = useState<Subscription | null>(null);
@@ -54,6 +65,8 @@ function SuscripcionesPage() {
     search: debouncedSearch || undefined,
     page: 1,
     limit: 50,
+    sortBy,
+    sortDir,
   });
 
   const { data: tags } = useTags();
@@ -68,6 +81,21 @@ function SuscripcionesPage() {
     setSearch(value);
     clearTimeout(searchTimeoutRef.current);
     searchTimeoutRef.current = setTimeout(() => setDebouncedSearch(value), 300);
+  };
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (statusFilter !== undefined) count++;
+    if (tagFilter !== undefined) count++;
+    if (sortBy !== "nextPaymentDate" || sortDir !== "asc") count++;
+    return count;
+  }, [statusFilter, tagFilter, sortBy, sortDir]);
+
+  const handleClearFilters = () => {
+    setStatusFilter(undefined);
+    setTagFilter(undefined);
+    setSortBy("nextPaymentDate");
+    setSortDir("asc");
   };
 
   const handleCreate = async (data: SubscriptionFormInput) => {
@@ -144,23 +172,24 @@ function SuscripcionesPage() {
             className="pl-8"
           />
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {STATUS_FILTERS.map((f) => (
-            <button
-              key={f.label}
-              type="button"
-              onClick={() => setStatusFilter(f.value)}
-              className={cn(
-                "inline-flex cursor-pointer items-center rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
-                statusFilter === f.value
-                  ? "bg-primary/10 border-primary/30 text-primary"
-                  : "border-border/30 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setSheetOpen(true)}
+          className="relative shrink-0"
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          {activeFilterCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
+              {activeFilterCount}
+            </span>
+          )}
+        </Button>
+        {activeFilterCount > 0 && (
+          <Button variant="ghost" size="icon" onClick={handleClearFilters} className="shrink-0">
+            <FilterX className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {tags && tags.length > 0 && (
@@ -234,6 +263,112 @@ function SuscripcionesPage() {
           ))}
         </div>
       )}
+
+      <FilterSheet open={sheetOpen} onClose={() => setSheetOpen(false)}>
+        <FilterSheet.Header onClose={() => setSheetOpen(false)} />
+        <FilterSheet.Body>
+          <FilterSheet.Section label="Estado">
+            <div className="flex flex-wrap gap-1.5">
+              {STATUS_FILTERS.map((f) => (
+                <button
+                  key={f.label}
+                  type="button"
+                  onClick={() => setStatusFilter(f.value)}
+                  className={cn(
+                    "inline-flex cursor-pointer items-center rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                    statusFilter === f.value
+                      ? "bg-primary/10 border-primary/30 text-primary"
+                      : "border-border/30 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </FilterSheet.Section>
+
+          {tags && tags.length > 0 && (
+            <FilterSheet.Section label="Tags">
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setTagFilter(undefined)}
+                  className={cn(
+                    "inline-flex cursor-pointer items-center rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                    !tagFilter
+                      ? "bg-primary/10 border-primary/30 text-primary"
+                      : "border-border/30 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  )}
+                >
+                  Todos
+                </button>
+                {tags.map((tag) => (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => setTagFilter(tagFilter === tag.id ? undefined : tag.id)}
+                    className={cn(
+                      "inline-flex cursor-pointer items-center rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                      tagFilter === tag.id
+                        ? "bg-primary/10 border-primary/30 text-primary"
+                        : "border-border/30 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    )}
+                    style={{
+                      backgroundColor: tagFilter === tag.id ? `${tag.color}20` : undefined,
+                      color: tagFilter === tag.id ? tag.color : undefined,
+                      borderColor: tagFilter === tag.id ? tag.color : undefined,
+                    }}
+                  >
+                    {tag.name}
+                  </button>
+                ))}
+              </div>
+            </FilterSheet.Section>
+          )}
+
+          <FilterSheet.Section label="Ordenar por">
+            <div className="flex flex-wrap gap-1.5">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setSortBy(opt.value)}
+                  className={cn(
+                    "inline-flex cursor-pointer items-center rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                    sortBy === opt.value
+                      ? "bg-primary/10 border-primary/30 text-primary"
+                      : "border-border/30 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setSortDir(sortDir === "asc" ? "desc" : "asc")}
+              className="mt-2 inline-flex cursor-pointer items-center rounded-md border border-border/30 px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              {sortDir === "asc" ? "Ascendente" : "Descendente"}
+            </button>
+          </FilterSheet.Section>
+        </FilterSheet.Body>
+        <FilterSheet.Footer>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => {
+              handleClearFilters();
+              setSheetOpen(false);
+            }}
+          >
+            Limpiar filtros
+          </Button>
+          <Button className="flex-1" onClick={() => setSheetOpen(false)}>
+            Aplicar
+          </Button>
+        </FilterSheet.Footer>
+      </FilterSheet>
 
       <SubscriptionDialog
         open={dialogOpen}

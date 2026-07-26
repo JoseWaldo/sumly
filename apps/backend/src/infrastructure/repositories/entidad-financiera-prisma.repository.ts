@@ -8,6 +8,7 @@ import type {
 } from "@/domain/repositories/entidad-financiera.repository";
 import type { EntidadFinancieraEntity } from "@/domain/entities/entidad-financiera.entity";
 import type { PaginatedResult } from "@/shared/types";
+import type { EntidadFinancieraListRow, SpListResult } from "@/domain/types/sp-row-types";
 import { ConflictError } from "@/shared/errors";
 
 export class EntidadFinancieraPrismaRepository implements IEntidadFinancieraRepository {
@@ -18,27 +19,39 @@ export class EntidadFinancieraPrismaRepository implements IEntidadFinancieraRepo
   }
 
   async findAllByUser(filters: FindEntidadesFinancierasFilters): Promise<PaginatedResult<EntidadFinancieraEntity>> {
-    const where = {
-      OR: [{ userId: null }, { userId: filters.userId }],
-      ...(filters.search && { nombre: { contains: filters.search, mode: "insensitive" as const } }),
-    };
+    const rows = await this.db.$queryRaw<[{ sp_list_tbl_entidades_financieras: SpListResult<EntidadFinancieraListRow> }]>`
+      SELECT sp_list_tbl_entidades_financieras(
+        ${filters.userId}::TEXT,
+        ${filters.search || null}::TEXT,
+        ${filters.page}::INT,
+        ${filters.limit}::INT,
+        ${filters.sortBy || null}::TEXT,
+        ${filters.sortDir || null}::TEXT
+      )
+    `;
 
-    const [entidades, total] = await Promise.all([
-      this.db.entidadFinanciera.findMany({
-        where,
-        orderBy: [{ esSistema: "desc" }, { nombre: "asc" }],
-        skip: (filters.page - 1) * filters.limit,
-        take: filters.limit,
-      }),
-      this.db.entidadFinanciera.count({ where }),
-    ]);
+    const result = rows[0]?.sp_list_tbl_entidades_financieras;
+
+    if (!result) {
+      return { data: [], total: 0, page: filters.page, limit: filters.limit, totalPages: 0 };
+    }
 
     return {
-      data: entidades.map((e) => this.toEntity(e)),
-      total,
+      data: (result.data ?? []).map((row) => ({
+        id: row.id,
+        nombre: row.nombre,
+        gradienteInicio: row.gradienteInicio,
+        gradienteFin: row.gradienteFin,
+        formatoNumero: row.formatoNumero,
+        esSistema: row.esSistema,
+        userId: row.userId,
+        createdAt: new Date(row.createdAt),
+        updatedAt: new Date(row.updatedAt),
+      })),
+      total: Number(result.total),
       page: filters.page,
       limit: filters.limit,
-      totalPages: Math.ceil(total / filters.limit),
+      totalPages: result.totalPages,
     };
   }
 
@@ -51,10 +64,7 @@ export class EntidadFinancieraPrismaRepository implements IEntidadFinancieraRepo
     const existing = await this.db.entidadFinanciera.findFirst({
       where: { nombre: data.nombre, userId: data.userId },
     });
-
-    if (existing) {
-      throw new ConflictError("Ya tienes una entidad con ese nombre");
-    }
+    if (existing) throw new ConflictError("Ya tienes una entidad con ese nombre");
 
     const entidad = await this.db.entidadFinanciera.create({
       data: {
@@ -65,7 +75,6 @@ export class EntidadFinancieraPrismaRepository implements IEntidadFinancieraRepo
         userId: data.userId,
       },
     });
-
     return this.toEntity(entidad);
   }
 
@@ -79,7 +88,6 @@ export class EntidadFinancieraPrismaRepository implements IEntidadFinancieraRepo
         ...(data.formatoNumero !== undefined && { formatoNumero: data.formatoNumero }),
       },
     });
-
     return this.toEntity(entidad);
   }
 

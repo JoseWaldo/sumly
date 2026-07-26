@@ -8,16 +8,20 @@ import type {
 
 interface UseFormasPagoParams {
   search?: string;
+  sortBy?: string;
+  sortDir?: "asc" | "desc";
   page: number;
   limit: number;
 }
 
-function useFormasPago({ search, page, limit }: UseFormasPagoParams) {
+function useFormasPago({ search, sortBy, sortDir, page, limit }: UseFormasPagoParams) {
   return useQuery({
-    queryKey: ["formas-pago", { search, page, limit }],
+    queryKey: ["formas-pago", { search, sortBy, sortDir, page, limit }],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
+      if (sortBy) params.set("sortBy", sortBy);
+      if (sortDir) params.set("sortDir", sortDir);
       params.set("page", String(page));
       params.set("limit", String(limit));
       return apiClient<PaginatedFormasPago>(`/api/v1/formas-pago?${params.toString()}`);

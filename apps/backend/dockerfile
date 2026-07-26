@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package.json bun.lock ./
 COPY apps/backend/package.json ./apps/backend/
 COPY apps/frontend/package.json ./apps/frontend/
-RUN bun install --filter finanzas-personales-backend --frozen-lockfile
+RUN bun install --filter sumly-backend --frozen-lockfile
 
 COPY apps/backend ./apps/backend
 WORKDIR /app/apps/backend

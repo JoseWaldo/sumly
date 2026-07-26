@@ -7,7 +7,7 @@ ENV VITE_API_URL=$VITE_API_URL
 COPY package.json bun.lock ./
 COPY apps/backend/package.json ./apps/backend/
 COPY apps/frontend/package.json ./apps/frontend/
-RUN bun install --filter finanzas-personales-frontend --frozen-lockfile
+RUN bun install --filter sumly-frontend --frozen-lockfile
 
 COPY apps/frontend ./apps/frontend
 WORKDIR /app/apps/frontend

@@ -97,7 +97,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: docker-compose.prod.yml
+          source: docker-compose.prod.yml,apps/backend/db
           target: ~/projects/sumly/prod/
 
       - name: Deploy
@@ -113,6 +113,10 @@ jobs:
             POSTGRES_USER=${{ secrets.POSTGRES_USER }}
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
             POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            POSTGRES_APP_USER=${{ secrets.POSTGRES_APP_USER }}
+            POSTGRES_APP_PASSWORD=${{ secrets.POSTGRES_APP_PASSWORD }}
+            POSTGRES_MIGRATION_USER=${{ secrets.POSTGRES_MIGRATION_USER }}
+            POSTGRES_MIGRATION_PASSWORD=${{ secrets.POSTGRES_MIGRATION_PASSWORD }}
             BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
             BETTER_AUTH_URL=${{ secrets.BETTER_AUTH_URL }}
             SMTP_USER=${{ secrets.SMTP_USER }}
@@ -143,7 +147,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: docker-compose.dev.yml
+          source: docker-compose.dev.yml,apps/backend/db
           target: ~/projects/sumly/dev/
 
       - name: Deploy
@@ -159,6 +163,10 @@ jobs:
             POSTGRES_USER=${{ secrets.POSTGRES_USER }}
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
             POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            POSTGRES_APP_USER=${{ secrets.POSTGRES_APP_USER }}
+            POSTGRES_APP_PASSWORD=${{ secrets.POSTGRES_APP_PASSWORD }}
+            POSTGRES_MIGRATION_USER=${{ secrets.POSTGRES_MIGRATION_USER }}
+            POSTGRES_MIGRATION_PASSWORD=${{ secrets.POSTGRES_MIGRATION_PASSWORD }}
             BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
             BETTER_AUTH_URL=${{ secrets.BETTER_AUTH_URL }}
             SMTP_USER=${{ secrets.SMTP_USER }}

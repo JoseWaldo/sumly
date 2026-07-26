@@ -8,8 +8,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/sumly-backend
-  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/sumly-frontend
 
 jobs:
   lint:
@@ -51,8 +49,18 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      OWNER_LC: ${{ github.repository_owner }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Normalize owner to lowercase
+        id: owner
+        shell: bash
+        run: |
+          echo "lc=${OWNER_LC,,}" >> $GITHUB_OUTPUT
+          echo "backend=ghcr.io/${OWNER_LC,,}/sumly-backend" >> $GITHUB_OUTPUT
+          echo "frontend=ghcr.io/${OWNER_LC,,}/sumly-frontend" >> $GITHUB_OUTPUT
 
       - name: Set image tags
         id: tags
@@ -77,7 +85,7 @@ jobs:
           context: .
           file: apps/backend/dockerfile
           push: true
-          tags: ${{ env.BACKEND_IMAGE }}:${{ steps.tags.outputs.env_tag }},${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+          tags: ${{ steps.owner.outputs.backend }}:${{ steps.tags.outputs.env_tag }},${{ steps.owner.outputs.backend }}:${{ github.sha }}
 
       - name: Build & push frontend
         uses: docker/build-push-action@v6
@@ -85,7 +93,7 @@ jobs:
           context: .
           file: apps/frontend/dockerfile
           push: true
-          tags: ${{ env.FRONTEND_IMAGE }}:${{ steps.tags.outputs.env_tag }},${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+          tags: ${{ steps.owner.outputs.frontend }}:${{ steps.tags.outputs.env_tag }},${{ steps.owner.outputs.frontend }}:${{ github.sha }}
           build-args: |
             VITE_API_URL=${{ secrets.VITE_API_URL }}
 

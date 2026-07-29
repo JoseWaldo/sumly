@@ -1,8 +1,10 @@
 import type { PrismaClient } from "../../../prisma/schema/generated";
 import { seedTblEntidadFinanciera } from "./tbl_entidad_financiera";
+import { seedTblCategory } from "./tbl_category";
 
 const TABLE_SEEDERS = {
   entidad_financiera: seedTblEntidadFinanciera,
+  category: seedTblCategory,
 } as const;
 
 type TableKey = keyof typeof TABLE_SEEDERS;

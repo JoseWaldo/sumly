@@ -16,6 +16,7 @@ model User {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
+  files               FileRecord[]
   sessions            Session[]
   accounts            Account[]
   categories          Category[]
@@ -64,6 +65,20 @@ model Transaction {
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
   @@map("tbl_transaction")
+}
+
+model FileRecord {
+  id           String   @id @default(cuid())
+  originalName String   @map("original_name")
+  mimeType     String   @map("mime_type")
+  sizeBytes    Int      @map("size_bytes")
+  s3Key        String   @map("s3_key")
+  userId       String   @map("user_id")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("tbl_file")
 }
 
 model Session {

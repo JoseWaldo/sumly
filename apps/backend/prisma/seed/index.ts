@@ -1,4 +1,4 @@
-import { prisma } from "../src/db";
+import { prisma } from "../../src/db";
 import { seedAllStoredProcedures, seedStoredProcedures, SP_SEEDERS } from "./stored-procedures/index";
 import { seedAllTables, seedTables, TABLE_SEEDERS } from "./tables/index";
 

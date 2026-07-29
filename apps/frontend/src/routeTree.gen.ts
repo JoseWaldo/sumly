@@ -17,6 +17,7 @@ import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardCategoriasRouteImport } from './routes/dashboard/categorias'
 import { Route as DashboardEntidadesFinancierasRouteImport } from './routes/dashboard/entidades-financieras'
+import { Route as DashboardFilesRouteImport } from './routes/dashboard/files'
 import { Route as DashboardFormasDePagoRouteImport } from './routes/dashboard/formas-de-pago'
 import { Route as DashboardHistorialRouteImport } from './routes/dashboard/historial'
 import { Route as DashboardPerfilRouteImport } from './routes/dashboard/perfil'
@@ -63,6 +64,11 @@ const DashboardEntidadesFinancierasRoute =
     path: '/entidades-financieras',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardFilesRoute = DashboardFilesRouteImport.update({
+  id: '/files',
+  path: '/files',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardFormasDePagoRoute = DashboardFormasDePagoRouteImport.update({
   id: '/formas-de-pago',
   path: '/formas-de-pago',
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/auth/register': typeof AuthRegisterRoute
   '/dashboard/categorias': typeof DashboardCategoriasRoute
   '/dashboard/entidades-financieras': typeof DashboardEntidadesFinancierasRoute
+  '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/formas-de-pago': typeof DashboardFormasDePagoRoute
   '/dashboard/historial': typeof DashboardHistorialRoute
   '/dashboard/perfil': typeof DashboardPerfilRoute
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/auth/register': typeof AuthRegisterRoute
   '/dashboard/categorias': typeof DashboardCategoriasRoute
   '/dashboard/entidades-financieras': typeof DashboardEntidadesFinancierasRoute
+  '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/formas-de-pago': typeof DashboardFormasDePagoRoute
   '/dashboard/historial': typeof DashboardHistorialRoute
   '/dashboard/perfil': typeof DashboardPerfilRoute
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/auth/register': typeof AuthRegisterRoute
   '/dashboard/categorias': typeof DashboardCategoriasRoute
   '/dashboard/entidades-financieras': typeof DashboardEntidadesFinancierasRoute
+  '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/formas-de-pago': typeof DashboardFormasDePagoRoute
   '/dashboard/historial': typeof DashboardHistorialRoute
   '/dashboard/perfil': typeof DashboardPerfilRoute
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/dashboard/categorias'
     | '/dashboard/entidades-financieras'
+    | '/dashboard/files'
     | '/dashboard/formas-de-pago'
     | '/dashboard/historial'
     | '/dashboard/perfil'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/dashboard/categorias'
     | '/dashboard/entidades-financieras'
+    | '/dashboard/files'
     | '/dashboard/formas-de-pago'
     | '/dashboard/historial'
     | '/dashboard/perfil'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/dashboard/categorias'
     | '/dashboard/entidades-financieras'
+    | '/dashboard/files'
     | '/dashboard/formas-de-pago'
     | '/dashboard/historial'
     | '/dashboard/perfil'
@@ -234,6 +246,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardEntidadesFinancierasRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/files': {
+      id: '/dashboard/files'
+      path: '/files'
+      fullPath: '/dashboard/files'
+      preLoaderRoute: typeof DashboardFilesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/formas-de-pago': {
       id: '/dashboard/formas-de-pago'
       path: '/formas-de-pago'
@@ -280,6 +299,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 interface DashboardRouteChildren {
   DashboardCategoriasRoute: typeof DashboardCategoriasRoute
   DashboardEntidadesFinancierasRoute: typeof DashboardEntidadesFinancierasRoute
+  DashboardFilesRoute: typeof DashboardFilesRoute
   DashboardFormasDePagoRoute: typeof DashboardFormasDePagoRoute
   DashboardHistorialRoute: typeof DashboardHistorialRoute
   DashboardPerfilRoute: typeof DashboardPerfilRoute
@@ -290,6 +310,7 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardCategoriasRoute: DashboardCategoriasRoute,
   DashboardEntidadesFinancierasRoute: DashboardEntidadesFinancierasRoute,
+  DashboardFilesRoute: DashboardFilesRoute,
   DashboardFormasDePagoRoute: DashboardFormasDePagoRoute,
   DashboardHistorialRoute: DashboardHistorialRoute,
   DashboardPerfilRoute: DashboardPerfilRoute,

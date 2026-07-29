@@ -167,6 +167,22 @@ apps/
 | HU-49 | Service worker con cacheo de assets estáticos y Google Fonts | Hecho |
 | HU-50 | Funcionamiento offline (cacheo de respuestas API, cola de operaciones) | Pendiente |
 
+### 13. Infraestructura de archivos (AWS S3)
+
+| ID | Historia | Estado |
+|----|----------|--------|
+| HU-56 | Subida de archivos con validacion de tipo y peso | Hecho |
+| HU-57 | Descarga de archivos via URL firmada | Hecho |
+| HU-58 | Visualizacion de archivos (imagenes) via URL firmada | Hecho |
+| HU-59 | Listado paginado de archivos | Hecho |
+| HU-60 | Subida de foto de perfil | Hecho |
+
+- Backend: validacion por magic number (tipos: image/*, CSV, Excel). Maximo 10 MB.
+- Frontend: validacion anticipada de tipo y peso antes de enviar.
+- Almacenamiento: AWS S3, buckets privados con URLs presigned.
+- `user.image` guarda el `fileId`, resuelto via `/files/:id/view`.
+- Componente `FileUpload` reutilizable con drag & drop y preview.
+
 ---
 
 ## Funcionalidades planeadas (no implementadas)
@@ -193,6 +209,7 @@ Todas las rutas bajo `/api/v1`, autenticadas (excepto health y auth). Estructura
 | Subscriptions | `GET/POST /subscriptions`, `GET/PATCH/DELETE /subscriptions/:id`, `POST /subscriptions/:id/report`, `GET/POST /subscriptions/tags`, `DELETE /subscriptions/tags/:id`, `GET /subscriptions/dashboard` |
 | Formas de pago | `GET/POST /formas-pago`, `GET/PATCH/DELETE /formas-pago/:id`, `GET /formas-pago/:id/reveal` |
 | Entidades financieras | `GET/POST /entidades-financieras`, `GET/PATCH/DELETE /entidades-financieras/:id` |
+| Files | `GET/POST /files`, `POST /files/upload`, `GET /files/:id/view`, `GET /files/:id/download` |
 
 ---
 
@@ -208,6 +225,7 @@ Todas las rutas bajo `/api/v1`, autenticadas (excepto health y auth). Estructura
 - React Hook Form v7 + Zod v4
 - Recharts v3, Lucide React, date-fns v4
 - Better Auth client (React)
+- Componente `FileUpload` (drag & drop, preview, validacion)
 - vite-plugin-pwa
 
 **Backend** (`apps/backend`):
@@ -216,6 +234,7 @@ Todas las rutas bajo `/api/v1`, autenticadas (excepto health y auth). Estructura
 - Prisma v7 + PostgreSQL 16
 - Zod v3 (validación de entorno y DTOs)
 - Nodemailer (SMTP)
-- AES-256-GCM (encriptación de números de tarjeta)
+- AES-256-GCM (encriptacion de numeros de tarjeta)
+- `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner` (AWS S3)
 
-**Infraestructura**: Docker Compose (3 entornos: local, staging, producción), nginx, GitHub Container Registry.
+**Infraestructura**: Docker Compose (3 entornos: local, staging, produccion), nginx, GitHub Container Registry, AWS S3.

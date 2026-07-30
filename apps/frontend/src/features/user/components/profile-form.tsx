@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Camera, UserRound } from "lucide-react";
@@ -21,7 +22,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { useAuth } from "@/hooks/use-auth";
+import { FileUpload } from "@/components/ui/file-upload";
+import { env } from "@/config/env";
 import { profileSchema, type ProfileInput } from "@/features/user/schemas/profile.schema";
+import type { FileRecordUploadResponse } from "@/features/files/schemas/file.schema";
 
 function getInitials(name: string): string {
   return name
@@ -32,20 +36,37 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
+function getImageUrl(image?: string | null): string | null {
+  if (!image) return null;
+  return `${env.apiUrl}/api/v1/files/${image}/view`;
+}
+
 export function ProfileForm() {
   const { user, updateProfile } = useAuth();
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const form = useForm<ProfileInput>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user?.name ?? "",
+      image: user?.image ?? undefined,
     },
   });
 
   async function onSubmit(data: ProfileInput) {
-    await updateProfile(data.name);
-    form.reset({ name: data.name });
+    await updateProfile(data.name, data.image);
+    form.reset({ name: data.name, image: data.image });
   }
+
+  function handleUploaded(result: FileRecordUploadResponse) {
+    setShowUpload(false);
+    setUploadError(null);
+    form.setValue("image", result.id);
+  }
+
+  const imageUrl = getImageUrl(form.watch("image") ?? user?.image);
+  const nameValue = form.watch("name") || user?.name;
 
   return (
     <div className="space-y-6">
@@ -58,27 +79,45 @@ export function ProfileForm() {
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-muted">
-            {user?.image ? (
+            {imageUrl ? (
               <img
-                src={user.image}
-                alt={user.name ?? ""}
+                src={imageUrl}
+                alt={nameValue ?? ""}
                 className="h-full w-full rounded-full object-cover"
               />
             ) : (
               <span className="text-2xl font-medium text-muted-foreground">
-                {user?.name ? getInitials(user.name) : <UserRound className="h-8 w-8" />}
+                {nameValue ? getInitials(nameValue) : <UserRound className="h-8 w-8" />}
               </span>
             )}
           </div>
-          <div className="flex flex-col items-center gap-2">
-            <Button variant="outline" size="sm" disabled>
-              <Camera className="h-4 w-4" />
-              Subir foto
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              Proximamente
-            </p>
-          </div>
+          {uploadError && (
+            <p className="text-sm text-destructive">{uploadError}</p>
+          )}
+          {showUpload ? (
+            <div className="w-full max-w-sm">
+              <FileUpload
+                onUploaded={handleUploaded}
+                onError={(err) => setUploadError(err)}
+                acceptTypes={["image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml"]}
+                maxSize={5 * 1024 * 1024}
+              />
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowUpload(true);
+                  setUploadError(null);
+                }}
+              >
+                <Camera className="h-4 w-4" />
+                {form.watch("image") || user?.image ? "Cambiar foto" : "Subir foto"}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

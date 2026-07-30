@@ -26,3 +26,25 @@ export async function apiClient<T = unknown>(
 
   return response.json();
 }
+
+export async function apiUploadFile<T = unknown>(
+  endpoint: string,
+  formData: FormData
+): Promise<T> {
+  const response = await fetch(`${env.apiUrl}${endpoint}`, {
+    method: "POST",
+    credentials: "include",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({
+      error: { code: "UNKNOWN", message: "Something went wrong" },
+    }));
+    throw new Error(
+      error?.error?.message ?? `Request failed with status ${response.status}`
+    );
+  }
+
+  return response.json();
+}

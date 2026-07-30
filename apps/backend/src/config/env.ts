@@ -11,6 +11,11 @@ const envSchema = z.object({
   SMTP_PASS: z.string().min(1),
   SMTP_FROM: z.string().min(1),
   ENCRYPTION_KEY: z.string().min(32, "ENCRYPTION_KEY debe tener al menos 32 caracteres"),
+  S3_REGION: z.string().min(1),
+  S3_ACCESS_KEY: z.string().min(1),
+  S3_SECRET_KEY: z.string().min(1),
+  S3_BUCKET: z.string().min(1),
+  S3_ENDPOINT: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

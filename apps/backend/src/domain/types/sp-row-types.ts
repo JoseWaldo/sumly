@@ -107,6 +107,17 @@ export interface EntidadFinancieraListRow {
   updatedAt: string;
 }
 
+export interface FileRecordListRow {
+  id: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  s3Key: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SpListResult<T> {
   data: T[];
   total: number;

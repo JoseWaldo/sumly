@@ -192,7 +192,17 @@ const result = rows[0]?.sp_list_tbl_transactions;
 
 ---
 
-## 4. Convenciones de código
+## 4. Documentación
+
+Cada vez que se agregue una funcionalidad o se refactorice código, **actualizar la documentación correspondiente**:
+
+- `CONTEXT.md` — si el cambio agrega/quita historias de usuario, modifica el stack tecnológico, o altera la tabla de rutas API.
+- `AGENTS.md` — si el cambio introduce una nueva convención, patrón de arquitectura, o checklist que los agentes deben seguir.
+- La skill `workflow` incluye un paso explícito de revisión de documentación en la Fase 4 (ver `.opencode/skills/workflow/SKILL.md`).
+
+---
+
+## 5. Convenciones de código
 
 ### Nombres de tablas
 Todas las tablas usan prefijo `tbl_` via `@@map` en Prisma:
@@ -212,7 +222,7 @@ Todas las tablas usan prefijo `tbl_` via `@@map` en Prisma:
 
 ---
 
-## 5. Referencia: SP de ejemplo (`sp_list_tbl_transactions`)
+## 6. Referencia: SP de ejemplo (`sp_list_tbl_transactions`)
 
 Ver el archivo de migración: `prisma/schema/migrations/20260726010000_add_forma_pago_to_transaction_and_list_sp/migration.sql`
 
@@ -228,11 +238,11 @@ Este es el SP más completo porque incluye:
 
 ---
 
-## 6. Estándar de filtros en frontend (FilterSheet)
+## 7. Estándar de filtros en frontend (FilterSheet)
 
 Toda página de listado usa el componente `FilterSheet` (`components/ui/filter-sheet.tsx`) para agrupar filtros, ordenamiento y búsqueda avanzada fuera del área principal de datos.
 
-### 6.1 Estructura de la página
+### 7.1 Estructura de la página
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -246,7 +256,7 @@ Toda página de listado usa el componente `FilterSheet` (`components/ui/filter-s
 └─────────────────────────────────────────────────────┘
 ```
 
-### 6.2 Componente FilterSheet
+### 7.2 Componente FilterSheet
 
 Sheet lateral que se despliega desde la derecha al hacer clic en el botón "Filtros". Usa `createPortal` para montarse en `document.body`.
 
@@ -277,7 +287,7 @@ Sheet lateral que se despliega desde la derecha al hacer clic en el botón "Filt
 
 **Scroll interno:** usar clase `scrollbar-thin` (definida en `globals.css`) + fade masks con gradientes `from-card to-transparent` en bordes superior/inferior del área scrolleable.
 
-### 6.3 Botón de filtros
+### 7.3 Botón de filtros
 
 ```tsx
 <Button variant="outline" size="icon" onClick={() => setSheetOpen(true)} className="relative shrink-0">
@@ -294,18 +304,18 @@ Sheet lateral que se despliega desde la derecha al hacer clic en el botón "Filt
 - Muestra un badge con el número de filtros activos.
 - El botón de "Limpiar" (`FilterX`) aparece a su derecha solo cuando hay filtros activos.
 
-### 6.4 Secciones del sheet (orden canónico)
+### 7.4 Secciones del sheet (orden canónico)
 
 1. **Tipo / Estado** — filtro principal del recurso (tipo de movimiento, estado de suscripción, etc.). Segmented buttons (`border-primary bg-primary/10 text-primary` cuando activo).
 2. **Periodo / Fecha** — solo para recursos con fecha (transactions).
 3. **Filtros específicos** — forma de pago, categoría, tags, etc.
 4. **Ordenar por** — botones de columna + dirección (asc/desc).
 
-### 6.5 Contador de filtros activos
+### 7.5 Contador de filtros activos
 
 Cada página calcula `activeFilterCount` con `useMemo` contando cuántos filtros difieren de su valor default. El badge del botón muestra este número.
 
-### 6.6 Checklist al crear/migrar un listado
+### 7.6 Checklist al crear/migrar un listado
 
 - [ ] Importar `FilterSheet` y `SlidersHorizontal` de lucide-react
 - [ ] Agregar estado `sheetOpen`

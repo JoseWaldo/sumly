@@ -118,6 +118,23 @@ export interface FileRecordListRow {
   updatedAt: string;
 }
 
+export interface FriendshipListRow {
+  id: string;
+  requesterId: string;
+  addresseeId: string;
+  status: "PENDING" | "ACCEPTED" | "REJECTED" | "BLOCKED";
+  blockedById: string | null;
+  respondedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  otherUser: {
+    id: string;
+    name: string;
+    image: string | null;
+    email: string | null;
+  };
+}
+
 export interface SpListResult<T> {
   data: T[];
   total: number;

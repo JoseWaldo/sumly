@@ -15,6 +15,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as DashboardAmigosRouteImport } from './routes/dashboard/amigos'
 import { Route as DashboardCategoriasRouteImport } from './routes/dashboard/categorias'
 import { Route as DashboardEntidadesFinancierasRouteImport } from './routes/dashboard/entidades-financieras'
 import { Route as DashboardFilesRouteImport } from './routes/dashboard/files'
@@ -51,6 +52,11 @@ const AuthRegisterRoute = AuthRegisterRouteImport.update({
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAmigosRoute = DashboardAmigosRouteImport.update({
+  id: '/amigos',
+  path: '/amigos',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardCategoriasRoute = DashboardCategoriasRouteImport.update({
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/dashboard/amigos': typeof DashboardAmigosRoute
   '/dashboard/categorias': typeof DashboardCategoriasRoute
   '/dashboard/entidades-financieras': typeof DashboardEntidadesFinancierasRoute
   '/dashboard/files': typeof DashboardFilesRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/dashboard/amigos': typeof DashboardAmigosRoute
   '/dashboard/categorias': typeof DashboardCategoriasRoute
   '/dashboard/entidades-financieras': typeof DashboardEntidadesFinancierasRoute
   '/dashboard/files': typeof DashboardFilesRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/dashboard/amigos': typeof DashboardAmigosRoute
   '/dashboard/categorias': typeof DashboardCategoriasRoute
   '/dashboard/entidades-financieras': typeof DashboardEntidadesFinancierasRoute
   '/dashboard/files': typeof DashboardFilesRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/auth/login'
     | '/auth/register'
+    | '/dashboard/amigos'
     | '/dashboard/categorias'
     | '/dashboard/entidades-financieras'
     | '/dashboard/files'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/auth/login'
     | '/auth/register'
+    | '/dashboard/amigos'
     | '/dashboard/categorias'
     | '/dashboard/entidades-financieras'
     | '/dashboard/files'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/auth/login'
     | '/auth/register'
+    | '/dashboard/amigos'
     | '/dashboard/categorias'
     | '/dashboard/entidades-financieras'
     | '/dashboard/files'
@@ -230,6 +242,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/amigos': {
+      id: '/dashboard/amigos'
+      path: '/amigos'
+      fullPath: '/dashboard/amigos'
+      preLoaderRoute: typeof DashboardAmigosRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/categorias': {
@@ -297,6 +316,7 @@ const AuthRouteChildren: AuthRouteChildren = {
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface DashboardRouteChildren {
+  DashboardAmigosRoute: typeof DashboardAmigosRoute
   DashboardCategoriasRoute: typeof DashboardCategoriasRoute
   DashboardEntidadesFinancierasRoute: typeof DashboardEntidadesFinancierasRoute
   DashboardFilesRoute: typeof DashboardFilesRoute
@@ -308,6 +328,7 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAmigosRoute: DashboardAmigosRoute,
   DashboardCategoriasRoute: DashboardCategoriasRoute,
   DashboardEntidadesFinancierasRoute: DashboardEntidadesFinancierasRoute,
   DashboardFilesRoute: DashboardFilesRoute,

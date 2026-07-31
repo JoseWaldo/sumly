@@ -8,6 +8,7 @@ import subscriptionRoutes from "@/presentation/v1/routes/subscription.routes";
 import entidadFinancieraRoutes from "@/presentation/v1/routes/entidad-financiera.routes";
 import formaPagoRoutes from "@/presentation/v1/routes/forma-pago.routes";
 import fileRoutes from "@/presentation/v1/routes/file.routes";
+import friendshipRoutes from "@/presentation/v1/routes/friendship.routes";
 import { authMiddleware } from "@/presentation/v1/middlewares/auth.middleware";
 
 const router = new Hono();
@@ -20,6 +21,7 @@ router.route("/subscriptions", subscriptionRoutes);
 router.route("/entidades-financieras", entidadFinancieraRoutes);
 router.route("/formas-pago", formaPagoRoutes);
 router.route("/files", fileRoutes);
+router.route("/friendships", friendshipRoutes);
 
 router.get("/profile", authMiddleware, (c) => {
   return c.json({ user: c.get("user") });

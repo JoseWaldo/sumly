@@ -16,3 +16,6 @@ bun.lockb
 
 # Generated files
 .impeccable/
+
+# Plans
+docs/planes

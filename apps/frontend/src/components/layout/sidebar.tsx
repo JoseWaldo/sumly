@@ -4,6 +4,7 @@ import { LayoutDashboard, History, Building2, CreditCard, Repeat, Tags, LogOut, 
 import { AppLogo } from "@/components/shared/app-logo";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
+import { env } from "@/config/env";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -163,7 +164,17 @@ export function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose }: Side
             !expanded && "justify-center px-2",
           )}>
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-sidebar-accent-foreground text-sm font-medium">
-              {user?.name ? user.name.charAt(0).toUpperCase() : <UserRound className="h-4 w-4" />}
+              {user?.image ? (
+                <img
+                  src={`${env.apiUrl}/api/v1/files/${user.image}/view`}
+                  alt={user?.name ?? ""}
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : user?.name ? (
+                user.name.charAt(0).toUpperCase()
+              ) : (
+                <UserRound className="h-4 w-4" />
+              )}
             </div>
             {expanded && (
               <div className="overflow-hidden">

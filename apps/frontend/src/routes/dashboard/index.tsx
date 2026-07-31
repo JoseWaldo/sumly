@@ -5,6 +5,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
+import { env } from "@/config/env";
 import { cn } from "@/lib/utils";
 import { formatDateCol, formatCurrencyCOP } from "@/lib/date-utils";
 import { LazyIcon } from "@/features/categories/components/icon-picker";
@@ -102,13 +103,28 @@ function DashboardIndex() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-3xl font-normal tracking-tight">
-          Bienvenido, {user?.name ?? "Usuario"}
-        </h2>
-        <p className="text-muted-foreground">
-          Este es el resumen de tus finanzas.
-        </p>
+      <div className="flex items-center gap-4">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-muted">
+          {user?.image ? (
+            <img
+              src={`${env.apiUrl}/api/v1/files/${user.image}/view`}
+              alt={user?.name ?? ""}
+              className="h-full w-full rounded-full object-cover"
+            />
+          ) : (
+            <span className="text-xl font-medium text-muted-foreground">
+              {user?.name ? user.name.charAt(0).toUpperCase() : "?"}
+            </span>
+          )}
+        </div>
+        <div>
+          <h2 className="text-3xl font-normal tracking-tight">
+            Bienvenido, {user?.name ?? "Usuario"}
+          </h2>
+          <p className="text-muted-foreground">
+            Este es el resumen de tus finanzas.
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

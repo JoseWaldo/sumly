@@ -43,11 +43,12 @@ export function useAuth() {
     await authClient.signOut();
   }, []);
 
-  const updateProfile = useCallback(async (name: string, image?: string) => {
-    const result = await authClient.updateUser({
-      name,
-      ...(image !== undefined && { image }),
-    });
+  const updateProfile = useCallback(async (name: string, image?: string | null) => {
+    const payload: Record<string, unknown> = { name };
+    if (image !== undefined) {
+      payload.image = image;
+    }
+    const result = await authClient.updateUser(payload);
     if (result.error) {
       throw new Error(result.error.message ?? "Error al actualizar el perfil");
     }

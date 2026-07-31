@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Camera, UserRound } from "lucide-react";
+import { Camera, Trash2, UserRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -54,15 +54,36 @@ export function ProfileForm() {
     },
   });
 
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        name: user.name ?? "",
+        image: user.image ?? undefined,
+      });
+    }
+  }, [user, form]);
+
   async function onSubmit(data: ProfileInput) {
     await updateProfile(data.name, data.image);
     form.reset({ name: data.name, image: data.image });
   }
 
-  function handleUploaded(result: FileRecordUploadResponse) {
+  async function handleUploaded(result: FileRecordUploadResponse) {
     setShowUpload(false);
     setUploadError(null);
     form.setValue("image", result.id);
+
+    const currentName = form.getValues("name");
+    await updateProfile(currentName, result.id);
+    form.reset({ name: currentName, image: result.id });
+  }
+
+  async function handleRemovePhoto() {
+    setShowUpload(false);
+    setUploadError(null);
+    form.setValue("image", undefined);
+    await updateProfile(form.getValues("name"), null);
+    form.reset({ name: form.getValues("name"), image: undefined });
   }
 
   const imageUrl = getImageUrl(form.watch("image") ?? user?.image);
@@ -105,17 +126,30 @@ export function ProfileForm() {
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setShowUpload(true);
-                  setUploadError(null);
-                }}
-              >
-                <Camera className="h-4 w-4" />
-                {form.watch("image") || user?.image ? "Cambiar foto" : "Subir foto"}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowUpload(true);
+                    setUploadError(null);
+                  }}
+                >
+                  <Camera className="h-4 w-4" />
+                  {form.watch("image") || user?.image ? "Cambiar foto" : "Subir foto"}
+                </Button>
+                {(form.watch("image") || user?.image) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRemovePhoto}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Eliminar
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </CardContent>

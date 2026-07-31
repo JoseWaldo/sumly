@@ -209,7 +209,7 @@ Todas las rutas bajo `/api/v1`, autenticadas (excepto health y auth). Estructura
 | Subscriptions | `GET/POST /subscriptions`, `GET/PATCH/DELETE /subscriptions/:id`, `POST /subscriptions/:id/report`, `GET/POST /subscriptions/tags`, `DELETE /subscriptions/tags/:id`, `GET /subscriptions/dashboard` |
 | Formas de pago | `GET/POST /formas-pago`, `GET/PATCH/DELETE /formas-pago/:id`, `GET /formas-pago/:id/reveal` |
 | Entidades financieras | `GET/POST /entidades-financieras`, `GET/PATCH/DELETE /entidades-financieras/:id` |
-| Files | `GET/POST /files`, `POST /files/upload`, `GET /files/:id/view`, `GET /files/:id/download` |
+| Files | `GET /files`, `POST /files/upload`, `GET /files/:id/view`, `GET /files/:id/download` |
 
 ---
 

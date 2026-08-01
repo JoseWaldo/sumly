@@ -209,9 +209,30 @@ Todas las tablas usan prefijo `tbl_` via `@@map` en Prisma:
 - `tbl_user`, `tbl_transaction`, `tbl_category`, `tbl_subscription`, `tbl_subscription_tag`, `tbl_forma_pago`, `tbl_entidad_financiera`, `tbl_session`, `tbl_account`, `tbl_verification`
 
 ### Migraciones
-- `prisma migrate dev --schema=prisma/schema/schema.prisma` para desarrollo.
-- `prisma migrate deploy --schema=prisma/schema/schema.prisma` para producción.
-- Los SPs y cambios de schema que no puede representar Prisma van en SQL raw en el `migration.sql`.
+
+**Flujo estándar para crear una migración:**
+
+1. Editar `prisma/schema/schema.prisma` (modelos, enums, campos, relaciones).
+2. Generar la migración con Prisma:
+   ```bash
+   bunx prisma migrate dev --name nombre-descriptivo
+   ```
+   Prisma genera el folder `migrations/<timestamp>_<nombre>/migration.sql` con las tablas, enums, índices y FKs. **Nunca escribir `migration.sql` a mano** para las partes que Prisma puede representar.
+3. Si se necesita un **stored procedure** o SQL raw que Prisma no modela (funciones, vistas, data migrations):
+   - **Los stored procedures van en el seed** (`prisma/seed/stored-procedures/`), no en migraciones. Se registran en `prisma/seed/stored-procedures/index.ts` y se ejecutan con `CREATE OR REPLACE FUNCTION` para ser idempotentes. El seed se corre con `bun run db:seed`.
+   - Para **data migrations** que requieran versionado (backfills, cambios de datos), crear una migración separada con `--create-only`.
+4. Después de cualquier cambio de schema, regenerar el cliente:
+   ```bash
+   bun run generate
+   ```
+
+**Reglas estrictas:**
+
+- **Prohibido `prisma migrate reset`** en cualquier base de datos que contenga datos que no se puedan perder. `reset` borra todos los datos y recrea la BD desde cero. Solo se tolera en entornos locales si no hay otra salida, y únicamente si los datos de desarrollo no son valiosos. Ante un drift, preferir `prisma migrate resolve` o arreglar el checksum manualmente en `_prisma_migrations`.
+- **Prohibido `prisma db push`**. Siempre usar migraciones versionadas.
+- **Prohibido modificar un `migration.sql` después de que fue aplicado** a una base de datos (causa drift de checksum). Si se necesita agregar algo a una migración ya aplicada, crear una migración nueva con el cambio incremental.
+- Toda migración debe ser **aditiva**: agregar tablas, columnas, enums, índices. No borrar ni renombrar objetos que puedan tener datos en producción sin un plan de migración explícito.
+- Los stored procedures usan `CREATE OR REPLACE FUNCTION` para ser idempotentes.
 
 ### Estructura de archivos
 - Un use case por archivo en `application/use-cases/<entidad>/`.
@@ -328,3 +349,44 @@ Cada página calcula `activeFilterCount` con `useMemo` contando cuántos filtros
 - [ ] La barra de búsqueda y el botón "Limpiar" quedan inline en el CardHeader
 - [ ] Todos los filtros que estaban inline migran al sheet
 - [ ] Los hooks del recurso aceptan y pasan `sortBy`, `sortDir`
+
+---
+
+## 8. Gestión de deudas — convenciones
+
+### 8.1 Movimientos NEUTRAL (tbl_movimiento)
+
+- Los movimientos `NEUTRAL` (tabla `tbl_movimiento`) **nunca** entran a reportes/gráficos (`tbl_transaction` solo contiene `REAL` por construcción — ingresos/gastos normales).
+- `saldo_disponible = balance(tbl_transaction) + Σ(ENTRADA−SALIDA de tbl_movimiento)`. El endpoint `GET /transactions/dashboard` retorna `disponible`.
+- El estado VENCIDA se actualiza de forma lazy dentro de `sp_list_tbl_deudas` (solo `PENDIENTE → VENCIDA` si `fecha_vencimiento < CURRENT_DATE`). El cron real llegará con HU-27.
+
+### 8.2 Deuda espejo (fila canónica + sombra)
+
+- Al crear una deuda con destinatario amigo, se genera una **fila espejo** (invertida) para el amigo con `espejo_de_id`.
+- **Abonos, saldo, eventos y movimientos viven solo en la fila canónica** (`espejo_de_id IS NULL`). El espejo sincroniza `estado` y `saldo_pendiente` en cascada.
+- La mutación de estado **siempre se hace vía canónica**; sync del espejo en un solo lugar (`syncMirrorTx` en el repositorio de infraestructura).
+- Las APIs aceptan el `id` de cualquiera de las dos filas y resuelven el par (`espejoDeId ?? id`).
+- **Snapshots**: cada fila guarda `contraparte_snapshot_nombre/avatar` de la otra parte (deudor en ME_DEBEN, acreedor en YO_DEBO, creador en el espejo). Esto asegura que la UI no se rompa si el otro usuario cambia nombre/avatar o deja de ser amigo.
+
+### 8.3 Abonos idempotentes
+
+- `tbl_deuda_abono.idempotency_key` tiene índice único.
+- El repositorio `createAbono` captura `P2002` (unique violation) y devuelve el abono existente.
+- El frontend genera un UUID (`crypto.randomUUID()`) al abrir el modal de pago y lo envía como `idempotencyKey`.
+- El saldo pendiente solo baja al **confirmar** un abono (no al reportarlo). Reportar sin `auto_confirmar` mueve la deuda a `ESPERANDO_CONFIRMACION` sin tocar saldo.
+
+### 8.4 Transacciones vinculadas a deudas
+
+- No existen transacciones REAL desde deudas. El ciclo de vida completo (creación → abono → cancelación/reversa) solo genera movimientos NEUTRAL.
+- `tbl_movimiento.origen_id` referencia `deuda_id` o `abono_id`. `reversa_de_id` referencia el movimiento que se anula.
+- La cancelación crea movimientos reversa (signo opuesto, mismo monto) dejando rastro completo.
+
+### 8.5 Ciclo de movimientos
+
+| Acción | Movimientos NEUTRAL |
+|---|---|
+| Crear deuda | Acreedor `SALIDA` + Deudor amigo `ENTRADA` (`origen_id = deuda_id`) |
+| Abono confirmado | Deudor `SALIDA` + Acreedor `ENTRADA` (`origen_id = abono_id`) |
+| Cancelar | Reversa de ambos movimientos de creación (`reversa_de_id`) |
+| Perdonar | Ninguno |
+| Rechazar / disputa | Ninguno (solo al confirmar) |

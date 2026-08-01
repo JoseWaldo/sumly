@@ -5,6 +5,7 @@ import { seedSpListTblSubscriptions } from "./sp_list_tbl_subscriptions";
 import { seedSpListTblFormasPago } from "./sp_list_tbl_formas_pago";
 import { seedSpListTblEntidadesFinancieras } from "./sp_list_tbl_entidades_financieras";
 import { seedSpListTblFile } from "./sp_list_tbl_file";
+import { seedSpListTblDeudas } from "./sp_list_tbl_deudas";
 
 const SP_SEEDERS = {
   transactions: seedSpListTblTransactions,
@@ -13,6 +14,7 @@ const SP_SEEDERS = {
   formas_pago: seedSpListTblFormasPago,
   entidades_financieras: seedSpListTblEntidadesFinancieras,
   files: seedSpListTblFile,
+  deudas: seedSpListTblDeudas,
 } as const;
 
 type SpKey = keyof typeof SP_SEEDERS;

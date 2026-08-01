@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { authMiddleware } from "@/presentation/v1/middlewares/auth.middleware";
 import { TransactionPrismaRepository } from "@/infrastructure/repositories/transaction-prisma.repository";
+import { MovimientoPrismaRepository } from "@/infrastructure/repositories/movimiento-prisma.repository";
 import { GetTransactionsUseCase } from "@/application/use-cases/transaction/get-transactions.use-case";
 import { CreateTransactionUseCase } from "@/application/use-cases/transaction/create-transaction.use-case";
 import { UpdateTransactionUseCase } from "@/application/use-cases/transaction/update-transaction.use-case";
@@ -13,11 +14,12 @@ import { createTransactionSchema, updateTransactionSchema } from "@/application/
 import type { FindTransactionsFilters } from "@/domain/repositories/transaction.repository";
 
 const repository = new TransactionPrismaRepository();
+const movimientoRepository = new MovimientoPrismaRepository();
 const getTransactions = new GetTransactionsUseCase(repository);
 const createTransaction = new CreateTransactionUseCase(repository);
 const updateTransaction = new UpdateTransactionUseCase(repository);
 const deleteTransaction = new DeleteTransactionUseCase(repository);
-const getDashboardSummary = new GetDashboardSummaryUseCase(repository);
+const getDashboardSummary = new GetDashboardSummaryUseCase(repository, movimientoRepository);
 const getExpensesByCategory = new GetExpensesByCategoryUseCase(repository);
 
 const transactionTypeSchema = z.enum(["INCOME", "EXPENSE"]).optional();

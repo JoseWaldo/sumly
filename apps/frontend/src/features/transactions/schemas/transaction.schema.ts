@@ -53,6 +53,7 @@ export interface PaginatedTransactions {
 
 export interface DashboardSummary {
   balance: number;
+  disponible: number;
   monthlyIncome: number;
   monthlyExpense: number;
   recentTransactions: Transaction[];

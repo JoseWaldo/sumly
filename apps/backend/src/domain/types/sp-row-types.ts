@@ -142,3 +142,59 @@ export interface SpListResult<T> {
   pageSize: number;
   totalPages: number;
 }
+
+export interface DebtListRow {
+  id: string;
+  grupoId: string;
+  direccion: "ME_DEBEN" | "YO_DEBO";
+  descripcion: string;
+  montoBase: string;
+  fechaVencimiento: string;
+  autoConfirmar: boolean;
+  acreedorUserId: string;
+  deudorUserId: string | null;
+  deudorNombreLibre: string | null;
+  contraparteSnapshotNombre: string;
+  contraparteSnapshotAvatar: string | null;
+  espejoDeId: string | null;
+  monto: string;
+  saldoPendiente: string;
+  estado: string;
+  createdAt: string;
+  updatedAt: string;
+  abonos: {
+    total: number;
+    confirmado: number;
+  };
+  eventosCount: number;
+}
+
+export interface DebtAbonoRow {
+  id: string;
+  deudaId: string;
+  monto: string;
+  estado: "PENDIENTE_CONFIRMACION" | "CONFIRMADO" | "RECHAZADO";
+  formaPagoId: string;
+  formaPago: {
+    id: string;
+    nombre: string;
+    tipo: string;
+    ultimosCuatro: string | null;
+    gradienteInicio: string;
+    gradienteFin: string;
+  } | null;
+  comprobanteFileId: string | null;
+  aiReviewStatus: string | null;
+  aiReviewNota: string | null;
+  confirmedAt: string | null;
+  createdAt: string;
+}
+
+export interface DebtEventRow {
+  id: string;
+  deudaId: string;
+  tipoEvento: string;
+  actorUserId: string | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+}

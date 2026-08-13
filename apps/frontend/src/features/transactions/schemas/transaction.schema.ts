@@ -66,3 +66,16 @@ export interface ExpenseByCategory {
   total: number;
   percentage: number;
 }
+
+export interface Movimiento {
+  id: string;
+  userId: string;
+  tipo: "ENTRADA" | "SALIDA";
+  naturaleza: "REAL" | "NEUTRAL";
+  monto: number;
+  origenTipo: string;
+  origenId: string | null;
+  reversaDeId: string | null;
+  editable: boolean;
+  createdAt: string;
+}

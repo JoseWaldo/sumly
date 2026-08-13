@@ -39,9 +39,9 @@ export class CreateDeudaUseCase {
       throw new ValidationError("No se pueden mezclar amigos y texto libre en la misma deuda. Crealas por separado.");
     }
 
-    // For YO_DEBO, only amigos (since there's no mirror for free text... actually the spec allows YO_DEBO to texto libre)
-    // Actually, YO_DEBO to texto libre makes sense: I owe money to "Juan Perez" (free text)
-    // OK, allowed.
+    if (dto.direccion === "YO_DEBO" && hasNombresLibres) {
+      throw new ValidationError("No se soporta YO_DEBO con texto libre. Usa un amigo o crea una deuda ME_DEBEN.");
+    }
 
     // Validate friendships for amigos
     for (const amigoId of amigoIds) {

@@ -64,14 +64,27 @@ export async function seedSpListTblDeudas(prisma: PrismaClient) {
         ELSE 'DESC NULLS LAST'
       END;
 
-      v_where_clause := '(d.acreedor_user_id = ' || quote_literal(p_user_id)
-        || ' OR (d.deudor_user_id = ' || quote_literal(p_user_id) || ' AND d.espejo_de_id IS NULL))';
+      -- Base clause: user is either the creator of the original row
+      -- or the recipient of a mirror row (mirror.acreedor = user)
+      v_where_clause := '(d.espejo_de_id IS NULL AND g.autor_id = ' || quote_literal(p_user_id) || ')'
+        || ' OR (d.acreedor_user_id = ' || quote_literal(p_user_id) || ' AND d.espejo_de_id IS NOT NULL)';
 
+      -- Direction filter using grupo.direccion (absolute) + user role (creator vs recipient)
       IF p_direccion IS NOT NULL AND p_direccion <> '' THEN
         IF p_direccion = 'ME_DEBEN' THEN
-          v_where_clause := 'd.acreedor_user_id = ' || quote_literal(p_user_id);
+          -- User sees ME_DEBEN: user is creator of a ME_DEBEN, or user is recipient (friend) of a YO_DEBO
+          v_where_clause := '('
+            || '(d.espejo_de_id IS NULL AND g.autor_id = ' || quote_literal(p_user_id) || ' AND g.direccion = ''ME_DEBEN'')'
+            || ' OR '
+            || '(d.acreedor_user_id = ' || quote_literal(p_user_id) || ' AND d.espejo_de_id IS NOT NULL AND g.direccion = ''YO_DEBO'')'
+            || ')';
         ELSIF p_direccion = 'YO_DEBO' THEN
-          v_where_clause := 'd.deudor_user_id = ' || quote_literal(p_user_id) || ' AND d.espejo_de_id IS NULL';
+          -- User sees YO_DEBO: user is creator of a YO_DEBO, or user is recipient (friend) of a ME_DEBEN
+          v_where_clause := '('
+            || '(d.espejo_de_id IS NULL AND g.autor_id = ' || quote_literal(p_user_id) || ' AND g.direccion = ''YO_DEBO'')'
+            || ' OR '
+            || '(d.acreedor_user_id = ' || quote_literal(p_user_id) || ' AND d.espejo_de_id IS NOT NULL AND g.direccion = ''ME_DEBEN'')'
+            || ')';
         END IF;
       END IF;
 

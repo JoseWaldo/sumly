@@ -26,6 +26,12 @@ export class ReportarAbonoUseCase {
       throw new ValidationError("Solo el deudor puede reportar un abono");
     }
 
+    if (canonical.estado !== "PENDIENTE") {
+      throw new ValidationError(
+        `No se puede reportar un abono en estado "${canonical.estado}". Espera a que se resuelva el abono pendiente.`
+      );
+    }
+
     if (dto.monto <= 0 || dto.monto > canonical.saldoPendiente) {
       throw new ValidationError(
         `El monto debe ser mayor a 0 y no superar el saldo pendiente (${canonical.saldoPendiente})`

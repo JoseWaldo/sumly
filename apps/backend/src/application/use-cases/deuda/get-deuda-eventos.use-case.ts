@@ -10,6 +10,7 @@ export class GetDeudaEventosUseCase {
     if (!deuda) {
       throw new NotFoundError("Deuda no encontrada");
     }
-    return this.repository.listEventos(deudaId);
+    const canonicalId = deuda.espejoDeId ?? deudaId;
+    return this.repository.listEventos(canonicalId);
   }
 }

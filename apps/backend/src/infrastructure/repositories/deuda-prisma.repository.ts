@@ -65,12 +65,16 @@ export class DeudaPrismaRepository implements IDeudaRepository {
             contraparteNombre = deudorNombre!;
           }
         } else {
-          const amigo = await tx.user.findUniqueOrThrow({
-            where: { id: dest.amigoId },
-            select: { name: true, image: true },
-          });
-          contraparteNombre = amigo.name;
-          contraparteAvatar = amigo.image;
+          if (esAmigo) {
+            const amigo = await tx.user.findUniqueOrThrow({
+              where: { id: dest.amigoId },
+              select: { name: true, image: true },
+            });
+            contraparteNombre = amigo.name;
+            contraparteAvatar = amigo.image;
+          } else {
+            contraparteNombre = deudorNombre!;
+          }
         }
 
         const deudaRow = await tx.deuda.create({
@@ -236,11 +240,25 @@ export class DeudaPrismaRepository implements IDeudaRepository {
     });
 
     const aFavor = deudas
-      .filter((d) => d.acreedorId === userId)
+      .filter((d) => {
+        const direccion = d.grupo?.direccion ?? "";
+        const esCreador = d.grupo?.autorId === userId;
+        const esEspejo = d.espejoDeId !== null;
+        // Creator of ME_DEBEN, or received mirror of YO_DEBO
+        return (esCreador && !esEspejo && direccion === "ME_DEBEN")
+          || (!esCreador && esEspejo && direccion === "YO_DEBO");
+      })
       .reduce((sum, d) => sum + toMoney(d.saldoPendiente), 0);
 
     const enContra = deudas
-      .filter((d) => d.deudorId === userId && d.espejoDeId === null)
+      .filter((d) => {
+        const direccion = d.grupo?.direccion ?? "";
+        const esCreador = d.grupo?.autorId === userId;
+        const esEspejo = d.espejoDeId !== null;
+        // Creator of YO_DEBO, or received mirror of ME_DEBEN
+        return (esCreador && !esEspejo && direccion === "YO_DEBO")
+          || (!esCreador && esEspejo && direccion === "ME_DEBEN");
+      })
       .reduce((sum, d) => sum + toMoney(d.saldoPendiente), 0);
 
     const ahora = new Date();
@@ -521,17 +539,25 @@ export class DeudaPrismaRepository implements IDeudaRepository {
   }
 
   async updateEstado(deudaId: string, estado: DeudaEstado): Promise<DeudaEntity> {
-    const updated = await this.db.deuda.update({
-      where: { id: deudaId },
-      data: { estado },
+    const updated = await this.db.$transaction(async (tx) => {
+      const result = await tx.deuda.update({
+        where: { id: deudaId },
+        data: { estado },
+      });
+      await this.syncMirrorTx(tx, deudaId);
+      return result;
     });
     return this.toEntity(updated);
   }
 
   async updateSaldo(deudaId: string, saldo: number): Promise<DeudaEntity> {
-    const updated = await this.db.deuda.update({
-      where: { id: deudaId },
-      data: { saldoPendiente: saldo },
+    const updated = await this.db.$transaction(async (tx) => {
+      const result = await tx.deuda.update({
+        where: { id: deudaId },
+        data: { saldoPendiente: saldo },
+      });
+      await this.syncMirrorTx(tx, deudaId);
+      return result;
     });
     return this.toEntity(updated);
   }

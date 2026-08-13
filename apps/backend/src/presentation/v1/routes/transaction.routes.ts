@@ -86,6 +86,12 @@ router.get("/", async (c) => {
   return c.json(result);
 });
 
+router.get("/movimientos", async (c) => {
+  const userId = c.get("user").id;
+  const movimientos = await movimientoRepository.findByUser(userId);
+  return c.json(movimientos);
+});
+
 router.get("/:id", async (c) => {
   const { id } = c.req.param();
   const transaction = await repository.findById(id);

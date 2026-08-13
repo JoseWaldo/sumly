@@ -17,4 +17,5 @@ export interface IMovimientoRepository {
   createReversa(input: CreateReversaInput): Promise<MovimientoEntity>;
   findById(id: string): Promise<MovimientoEntity | null>;
   getNeutralNet(userId: string): Promise<number>;
+  findByUser(userId: string): Promise<MovimientoEntity[]>;
 }

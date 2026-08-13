@@ -70,6 +70,14 @@ export class MovimientoPrismaRepository implements IMovimientoRepository {
     return entradasTotal - salidasTotal;
   }
 
+  async findByUser(userId: string): Promise<MovimientoEntity[]> {
+    const rows = await this.db.movimiento.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    });
+    return rows.map((r) => this.toEntity(r));
+  }
+
   private toEntity(row: any): MovimientoEntity {
     return {
       id: row.id,

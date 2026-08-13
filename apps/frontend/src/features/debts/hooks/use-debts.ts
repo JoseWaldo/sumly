@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import type {
   Debt,
-  DebtWithGrupo,
+  DebtDetailResponse,
   DebtDashboard,
   PaginatedDebts,
   Abono,
@@ -50,7 +50,7 @@ export function useDebtDashboard() {
 export function useDebtDetail(id: string | null) {
   return useQuery({
     queryKey: ["debts", "detail", id],
-    queryFn: () => apiClient<DebtWithGrupo>(`${BASE}/${id}`),
+    queryFn: () => apiClient<DebtDetailResponse>(`${BASE}/${id}`),
     enabled: !!id,
   });
 }

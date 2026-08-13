@@ -160,10 +160,13 @@ function DeudasPage() {
     }
   };
 
-  const detailAbonos = (detail as any)?.abonos ?? [];
+  const detailDebt = detail?.deuda ?? null;
+  const detailAbonos = detail?.abonos ?? [];
   const detailEventos = eventos ?? [];
-  const isAcreedor = detail ? detail.acreedorUserId === user?.id : false;
-  const isDeudor = detail ? detail.deudorUserId === user?.id : false;
+  const esCreador = detailDebt?.grupo?.autorId === user?.id;
+  const esMeDeben = detailDebt?.grupo?.direccion === "ME_DEBEN";
+  const isAcreedor = (esCreador && esMeDeben) || (!esCreador && !esMeDeben);
+  const isDeudor = (esCreador && !esMeDeben) || (!esCreador && esMeDeben);
 
   return (
     <div className="space-y-4">
@@ -368,12 +371,12 @@ function DeudasPage() {
       <DebtDetailDialog
         open={!!detailId}
         onClose={() => setDetailId(null)}
-        debt={detail ?? null}
+        debt={detailDebt}
         abonos={detailAbonos}
         eventos={detailEventos}
         isAcreedor={isAcreedor}
         isDeudor={isDeudor}
-        onPay={() => detail && setPayDebt(detail)}
+        onPay={() => detailDebt && setPayDebt(detailDebt)}
         onConfirm={handleConfirm}
         onReject={handleReject}
         onCancel={handleCancel}

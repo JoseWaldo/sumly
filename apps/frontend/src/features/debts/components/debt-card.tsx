@@ -34,6 +34,7 @@ export function DebtCard({ debt, direction, onSelect, onPay }: DebtCardProps) {
   const vencida = debt.estado === "VENCIDA";
   const pagada = debt.estado === "PAGADA" || debt.estado === "CANCELADA" || debt.estado === "PERDONADA";
   const isDeudor = direction === "Yo debo";
+  const sePuedePagar = debt.estado === "PENDIENTE";
 
   const nombre = debt.contraparteSnapshotNombre || debt.deudorNombreLibre || "Sin nombre";
 
@@ -71,10 +72,11 @@ export function DebtCard({ debt, direction, onSelect, onPay }: DebtCardProps) {
             Vence {formatDate(debt.createdAt)}
           </span>
         </div>
-        {isDeudor && !pagada && (
+        {isDeudor && (
           <Button
             variant="outline"
             size="sm"
+            disabled={!sePuedePagar}
             onClick={(e) => {
               e.stopPropagation();
               onPay();

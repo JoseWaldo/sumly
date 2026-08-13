@@ -1,7 +1,8 @@
-import { useState, useRef, useCallback } from "react";
-import { Upload, X, File as FileIcon } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Upload, X, File as FileIcon, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { apiUploadFile } from "@/api/client";
 import type { FileRecordUploadResponse } from "@/features/files/schemas/file.schema";
 import {
   ALLOWED_FILE_TYPES,
@@ -13,21 +14,26 @@ import {
 interface FileUploadProps {
   onUploaded: (result: FileRecordUploadResponse) => void;
   onError: (error: string) => void;
+  onCleared?: () => void;
   acceptTypes?: readonly string[];
   maxSize?: number;
+  autoUpload?: boolean;
 }
 
 export function FileUpload({
   onUploaded,
   onError,
+  onCleared,
   acceptTypes = ALLOWED_FILE_TYPES,
   maxSize = MAX_FILE_SIZE,
+  autoUpload = false,
 }: FileUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const autoUploadedRef = useRef(false);
 
   const handleFile = useCallback(
     (file: File) => {
@@ -66,23 +72,10 @@ export function FileUpload({
       const formData = new FormData();
       formData.append("file", selectedFile);
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/v1/files/upload`,
-        {
-          method: "POST",
-          credentials: "include",
-          body: formData,
-        }
+      const result = await apiUploadFile<FileRecordUploadResponse>(
+        "/api/v1/files/upload",
+        formData
       );
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({
-          error: { message: "Error al subir el archivo" },
-        }));
-        throw new Error(error?.error?.message ?? "Error al subir el archivo");
-      }
-
-      const result = (await response.json()) as FileRecordUploadResponse;
       onUploaded(result);
       setSelectedFile(null);
       setPreview(null);
@@ -92,6 +85,16 @@ export function FileUpload({
       setIsUploading(false);
     }
   }, [selectedFile, onUploaded, onError]);
+
+  useEffect(() => {
+    if (autoUpload && selectedFile && !autoUploadedRef.current) {
+      autoUploadedRef.current = true;
+      handleUpload();
+    }
+    if (!selectedFile) {
+      autoUploadedRef.current = false;
+    }
+  }, [selectedFile, autoUpload, handleUpload]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -125,7 +128,8 @@ export function FileUpload({
     setSelectedFile(null);
     setPreview(null);
     if (inputRef.current) inputRef.current.value = "";
-  }, []);
+    onCleared?.();
+  }, [onCleared]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -176,24 +180,33 @@ export function FileUpload({
             />
           ) : (
             <div className="flex h-12 w-12 items-center justify-center rounded bg-muted">
-              <FileIcon className="h-5 w-5 text-muted-foreground" />
+              {isUploading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              ) : (
+                <FileIcon className="h-5 w-5 text-muted-foreground" />
+              )}
             </div>
           )}
           <div className="flex-1 min-w-0">
             <p className="truncate text-sm font-medium">{selectedFile.name}</p>
             <p className="text-xs text-muted-foreground">
-              {(selectedFile.size / 1024).toFixed(1)} KB
+              {isUploading ? "Subiendo..." : `${(selectedFile.size / 1024).toFixed(1)} KB`}
             </p>
           </div>
           <div className="flex items-center gap-1">
-            <Button
-              type="button"
-              size="sm"
-              disabled={isUploading}
-              onClick={handleUpload}
-            >
-              {isUploading ? "Subiendo..." : "Subir"}
-            </Button>
+            {!autoUpload && (
+              <Button
+                type="button"
+                size="sm"
+                disabled={isUploading}
+                onClick={handleUpload}
+              >
+                {isUploading ? "Subiendo..." : "Subir"}
+              </Button>
+            )}
+            {autoUpload && isUploading && (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            )}
             <Button
               type="button"
               variant="ghost"

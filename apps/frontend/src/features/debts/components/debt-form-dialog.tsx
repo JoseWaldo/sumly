@@ -45,7 +45,7 @@ export function DebtFormDialog({ open, onClose, onSubmit, isLoading }: DebtFormD
     defaultValues: {
       direccion: "ME_DEBEN",
       descripcion: "",
-      montoBase: "" as unknown as number,
+      montoBase: undefined as unknown as number,
       fechaVencimiento: "",
       autoConfirmar: true,
       destinatarios: [],
@@ -57,7 +57,7 @@ export function DebtFormDialog({ open, onClose, onSubmit, isLoading }: DebtFormD
       form.reset({
         direccion: "ME_DEBEN",
         descripcion: "",
-        montoBase: "" as unknown as number,
+        montoBase: undefined as unknown as number,
         fechaVencimiento: "",
         autoConfirmar: true,
         destinatarios: [],
@@ -70,31 +70,48 @@ export function DebtFormDialog({ open, onClose, onSubmit, isLoading }: DebtFormD
 
   const montoBase = useWatch({ control: form.control, name: "montoBase" });
 
+  useEffect(() => {
+    if (modoDestinatario === "amigos") {
+      form.setValue("destinatarios", selectedFriends.map((f) => ({
+        amigoId: f.id,
+        monto: typeof montoBase === "number" ? montoBase : 0,
+      })), { shouldValidate: true });
+    }
+  }, [selectedFriends, montoBase, modoDestinatario]);
+
+  useEffect(() => {
+    if (modoDestinatario === "texto") {
+      const trimmed = nombreLibre.trim();
+      if (trimmed) {
+        form.setValue("destinatarios", [{
+          nombreLibre: trimmed,
+          monto: typeof montoBase === "number" ? montoBase : 0,
+        }], { shouldValidate: true });
+      } else {
+        form.setValue("destinatarios", [], { shouldValidate: true });
+      }
+    }
+  }, [nombreLibre, montoBase, modoDestinatario]);
+
   const toggleFriend = (friend: FriendOption) => {
+    let newSelection: FriendOption[];
     if (selectedFriends.find((f) => f.id === friend.id)) {
-      setSelectedFriends((prev) => prev.filter((f) => f.id !== friend.id));
+      newSelection = selectedFriends.filter((f) => f.id !== friend.id);
     } else {
       if (selectedFriends.length >= 10) return;
-      setSelectedFriends((prev) => [...prev, friend]);
+      newSelection = [...selectedFriends, friend];
     }
+    setSelectedFriends(newSelection);
+  };
+
+  const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNombreLibre(e.target.value);
   };
 
   const handleSubmit = async (data: CreateDeudaInput) => {
-    if (modoDestinatario === "amigos") {
-      if (selectedFriends.length === 0) {
-        form.setError("destinatarios", { message: "Selecciona al menos un amigo" });
-        return;
-      }
-      data.destinatarios = selectedFriends.map((f) => ({
-        amigoId: f.id,
-        monto: montoBase || 0,
-      }));
-    } else {
-      if (!nombreLibre.trim()) {
-        form.setError("destinatarios", { message: "Ingresa un nombre" });
-        return;
-      }
-      data.destinatarios = [{ nombreLibre: nombreLibre.trim(), monto: montoBase || 0 }];
+    if (data.destinatarios.length === 0) {
+      form.setError("destinatarios", { message: "Selecciona al menos un destinatario" });
+      return;
     }
 
     try {
@@ -173,84 +190,90 @@ export function DebtFormDialog({ open, onClose, onSubmit, isLoading }: DebtFormD
             />
 
             {/* Destinatario */}
-            <FormItem>
-              <FormLabel>Destinatario</FormLabel>
-              <div className="flex gap-1 mb-2">
-                <button
-                  type="button"
-                  onClick={() => setModoDestinatario("amigos")}
-                  className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors ${
-                    modoDestinatario === "amigos"
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-input/40 text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Amigo(s)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setModoDestinatario("texto")}
-                  className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors ${
-                    modoDestinatario === "texto"
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-input/40 text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Texto libre
-                </button>
-              </div>
-
-              {modoDestinatario === "amigos" ? (
-                <>
-                  <input
-                    type="text"
-                    placeholder="Buscar amigos..."
-                    value={searchFriends}
-                    onChange={(e) => setSearchFriends(e.target.value)}
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring mb-2"
-                  />
-                  <div className="max-h-36 overflow-y-auto scrollbar-thin space-y-1 border border-border rounded-lg p-1">
-                    {friends.map((f) => {
-                      const selected = selectedFriends.find((s) => s.id === f.id);
-                      return (
-                        <div
-                          key={f.id}
-                          onClick={() => toggleFriend(f)}
-                          className={`flex items-center justify-between rounded-md px-3 py-2 cursor-pointer text-sm transition-colors ${
-                            selected
-                              ? "bg-primary/10 border border-primary/30"
-                              : "hover:bg-accent"
-                          }`}
-                        >
-                          <div>
-                            <p className="font-medium">{f.name}</p>
-                            <p className="text-xs text-muted-foreground">{f.email}</p>
-                          </div>
-                          {selected && <X className="h-3.5 w-3.5 text-primary" />}
-                        </div>
-                      );
-                    })}
-                    {friends.length === 0 && (
-                      <p className="text-xs text-muted-foreground text-center py-3">No se encontraron amigos</p>
-                    )}
+            <FormField
+              control={form.control}
+              name="destinatarios"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Destinatario</FormLabel>
+                  <div className="flex gap-1 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => setModoDestinatario("amigos")}
+                      className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors ${
+                        modoDestinatario === "amigos"
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-input/40 text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Amigo(s)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setModoDestinatario("texto")}
+                      className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors ${
+                        modoDestinatario === "texto"
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-input/40 text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Texto libre
+                    </button>
                   </div>
-                  {selectedFriends.length > 0 && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {selectedFriends.length} amigo{selectedFriends.length > 1 ? "s" : ""} seleccionado{selectedFriends.length > 1 ? "s" : ""}
-                    </p>
+
+                  {modoDestinatario === "amigos" ? (
+                    <>
+                      <input
+                        type="text"
+                        placeholder="Buscar amigos..."
+                        value={searchFriends}
+                        onChange={(e) => setSearchFriends(e.target.value)}
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring mb-2"
+                      />
+                      <div className="max-h-36 overflow-y-auto scrollbar-thin space-y-1 border border-border rounded-lg p-1">
+                        {friends.map((f) => {
+                          const selected = selectedFriends.find((s) => s.id === f.id);
+                          return (
+                            <div
+                              key={f.id}
+                              onClick={() => toggleFriend(f)}
+                              className={`flex items-center justify-between rounded-md px-3 py-2 cursor-pointer text-sm transition-colors ${
+                                selected
+                                  ? "bg-primary/10 border border-primary/30"
+                                  : "hover:bg-accent"
+                              }`}
+                            >
+                              <div>
+                                <p className="font-medium">{f.name}</p>
+                                <p className="text-xs text-muted-foreground">{f.email}</p>
+                              </div>
+                              {selected && <X className="h-3.5 w-3.5 text-primary" />}
+                            </div>
+                          );
+                        })}
+                        {friends.length === 0 && (
+                          <p className="text-xs text-muted-foreground text-center py-3">No se encontraron amigos</p>
+                        )}
+                      </div>
+                      {selectedFriends.length > 0 && (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {selectedFriends.length} amigo{selectedFriends.length > 1 ? "s" : ""} seleccionado{selectedFriends.length > 1 ? "s" : ""}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <input
+                      type="text"
+                      placeholder="Nombre de la persona"
+                      value={nombreLibre}
+                      onChange={handleNombreChange}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    />
                   )}
-                </>
-              ) : (
-                <input
-                  type="text"
-                  placeholder="Nombre de la persona"
-                  value={nombreLibre}
-                  onChange={(e) => setNombreLibre(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
+                  <FormMessage />
+                </FormItem>
               )}
-              <FormMessage />
-            </FormItem>
+            />
 
             {/* Monto */}
             <FormField
@@ -261,7 +284,7 @@ export function DebtFormDialog({ open, onClose, onSubmit, isLoading }: DebtFormD
                   <FormLabel>Monto</FormLabel>
                   <FormControl>
                     <CurrencyInput
-                      value={field.value ?? 0}
+                      value={typeof field.value === "number" ? field.value : null}
                       onChange={field.onChange}
                       placeholder="0"
                     />

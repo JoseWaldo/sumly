@@ -67,6 +67,11 @@ export interface DebtWithGrupo extends Debt {
   };
 }
 
+export interface DebtDetailResponse {
+  deuda: DebtWithGrupo;
+  abonos: Abono[];
+}
+
 export interface Abono {
   id: string;
   deudaId: string;

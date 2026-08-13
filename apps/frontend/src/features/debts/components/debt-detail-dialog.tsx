@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, X, RotateCcw, Coins, Calendar, User } from "lucide-react";
+import { Check, X, RotateCcw, Coins, Calendar, User, Image } from "lucide-react";
+import { env } from "@/config/env";
+import { useState } from "react";
 import type { DebtWithGrupo, Abono, DebtEvent } from "@/features/debts/schemas/debt.schema";
 
 function formatMoney(v: number): string {
@@ -31,6 +33,8 @@ export function DebtDetailDialog({
   open, onClose, debt, abonos, eventos, isAcreedor, isDeudor,
   onPay, onConfirm, onReject, onCancel, onForgive, onResolveDisputa, isLoading,
 }: DebtDetailDialogProps) {
+  const [fullImage, setFullImage] = useState<string | null>(null);
+
   if (!open || !debt) return null;
 
   const nombre = debt.contraparteSnapshotNombre || debt.deudorNombreLibre || "Sin nombre";
@@ -38,6 +42,7 @@ export function DebtDetailDialog({
   const cancelada = debt.estado === "CANCELADA" || debt.estado === "PERDONADA";
   const terminal = pagada || cancelada;
   const disputada = debt.estado === "DISPUTADA";
+  const sePuedePagar = debt.estado === "PENDIENTE";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -85,11 +90,22 @@ export function DebtDetailDialog({
                       <p className="text-sm font-medium">{formatMoney(ab.monto)}</p>
                       <p className="text-xs text-muted-foreground">{ab.formaPago?.nombre} — {formatDate(ab.createdAt)}</p>
                       {ab.comprobanteFileId && (
-                        <img
-                          src={`${import.meta.env.VITE_API_URL}/api/v1/files/${ab.comprobanteFileId}/view`}
-                          alt="Comprobante"
-                          className="mt-1 max-h-24 rounded cursor-pointer"
-                        />
+                        <div className="mt-1 flex items-center gap-2">
+                          <img
+                            src={`${env.apiUrl}/api/v1/files/${ab.comprobanteFileId}/view`}
+                            alt="Comprobante"
+                            className="max-h-16 rounded cursor-pointer border border-border hover:opacity-80 transition-opacity"
+                            onClick={() => setFullImage(`${env.apiUrl}/api/v1/files/${ab.comprobanteFileId}/view`)}
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => setFullImage(`${env.apiUrl}/api/v1/files/${ab.comprobanteFileId}/view`)}
+                          >
+                            <Image className="mr-1 h-3 w-3" /> Ver
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -139,7 +155,7 @@ export function DebtDetailDialog({
         {!terminal && (
           <div className="mt-6 flex flex-wrap gap-2">
             {isDeudor && (
-              <Button onClick={onPay} size="sm">
+              <Button onClick={onPay} size="sm" disabled={!sePuedePagar}>
                 <Coins className="mr-1 h-4 w-4" /> Pagar
               </Button>
             )}
@@ -169,6 +185,18 @@ export function DebtDetailDialog({
         <div className="mt-4 flex justify-end">
           <Button variant="outline" onClick={onClose}>Cerrar</Button>
         </div>
+
+        {fullImage && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70" onClick={() => setFullImage(null)}>
+            <img src={fullImage} alt="Comprobante" className="max-h-[90vh] max-w-[90vw] rounded-lg shadow-xl" />
+            <button
+              className="absolute top-4 right-4 rounded-full bg-black/50 p-2 text-white hover:bg-black/70"
+              onClick={() => setFullImage(null)}
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

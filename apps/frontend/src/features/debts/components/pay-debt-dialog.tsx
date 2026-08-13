@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -26,7 +26,22 @@ export function PayDebtDialog({ open, onClose, debt, formasPago, onSubmit, isLoa
   const [monto, setMonto] = useState<number>(debt?.saldoPendiente ?? 0);
   const [formaPagoId, setFormaPagoId] = useState("");
   const [comprobanteId, setComprobanteId] = useState<string | undefined>();
+  const [comprobanteName, setComprobanteName] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const idempotencyKey = useRef("");
+  const uploadKey = useRef(0);
+
+  useEffect(() => {
+    if (open) {
+      idempotencyKey.current = crypto.randomUUID();
+      setMonto(debt?.saldoPendiente ?? 0);
+      setFormaPagoId("");
+      setComprobanteId(undefined);
+      setComprobanteName(null);
+      setError("");
+      uploadKey.current += 1;
+    }
+  }, [open]);
 
   if (!open || !debt) return null;
 
@@ -43,9 +58,8 @@ export function PayDebtDialog({ open, onClose, debt, formasPago, onSubmit, isLoa
       return;
     }
 
-    const idempotencyKey = crypto.randomUUID();
     try {
-      await onSubmit({ monto, formaPagoId, comprobanteFileId: comprobanteId, idempotencyKey });
+      await onSubmit({ monto, formaPagoId, comprobanteFileId: comprobanteId, idempotencyKey: idempotencyKey.current });
       onClose();
     } catch (e: any) {
       setError(e?.message ?? "Error al reportar pago");
@@ -82,11 +96,23 @@ export function PayDebtDialog({ open, onClose, debt, formasPago, onSubmit, isLoa
           <div>
             <Label>Comprobante (opcional)</Label>
             <FileUpload
-              onUploaded={(result) => setComprobanteId(result.id)}
+              key={uploadKey.current}
+              onUploaded={(result) => {
+                setComprobanteId(result.id);
+                setComprobanteName(result.originalName);
+              }}
+              onCleared={() => {
+                setComprobanteId(undefined);
+                setComprobanteName(null);
+              }}
               onError={(err) => setError(err)}
               acceptTypes={["image/jpeg", "image/png", "image/webp"]}
               maxSize={10 * 1024 * 1024}
+              autoUpload
             />
+            {comprobanteName && (
+              <p className="mt-1 text-xs text-emerald-500">Comprobante subido: {comprobanteName}</p>
+            )}
           </div>
         </div>
 

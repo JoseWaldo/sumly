@@ -15,6 +15,7 @@ import { DeleteTransactionDialog } from "@/features/transactions/components/dele
 import { Dialog } from "@/features/categories/components/category-dialog";
 import { FilterSheet } from "@/components/ui/filter-sheet";
 import { useFormasPago } from "@/features/formas-pago/hooks/use-formas-pago";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import {
   useTransactions,
   useCreateTransaction,
@@ -76,10 +77,11 @@ function HistorialPage() {
   ], []);
 
   const typeParam = typeFilter === "ALL" ? undefined : typeFilter;
+  const debouncedSearch = useDebouncedValue(search);
 
   const { data, isLoading } = useTransactions({
     type: typeParam,
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     month: datePreset === "month" ? month : undefined,
     year: datePreset === "month" ? year : undefined,
     dateFrom: datePreset === "range" ? (dateFrom || undefined) : undefined,

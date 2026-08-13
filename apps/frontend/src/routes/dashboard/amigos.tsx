@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { env } from "@/config/env";
 import { formatDateCol } from "@/lib/date-utils";
 
@@ -56,8 +57,9 @@ function AmigosPage() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [requestsTab, setRequestsTab] = useState<"received" | "sent">("received");
 
+  const debouncedSearch = useDebouncedValue(search);
   const { data: friendsData, isLoading: friendsLoading } = useFriends({
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     page,
     limit: PAGE_SIZE,
   });

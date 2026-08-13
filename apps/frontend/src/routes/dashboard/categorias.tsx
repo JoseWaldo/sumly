@@ -10,6 +10,7 @@ import { CategoryForm } from "@/features/categories/components/category-form";
 import { DeleteCategoryDialog } from "@/features/categories/components/delete-category-dialog";
 import { Dialog } from "@/features/categories/components/category-dialog";
 import { FilterSheet } from "@/components/ui/filter-sheet";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import {
   useCategories,
   useCreateCategory,
@@ -50,9 +51,10 @@ function CategoriasPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const typeFilter = activeTab === "all" ? undefined : activeTab;
+  const debouncedSearch = useDebouncedValue(search);
   const { data: paginated, isLoading } = useCategories({
     type: typeFilter,
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     sortBy,
     sortDir,
     page,

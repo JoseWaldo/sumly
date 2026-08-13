@@ -10,6 +10,7 @@ import { FormaPagoForm } from "@/features/formas-pago/components/forma-pago-form
 import { FormaPagoDialog } from "@/features/formas-pago/components/forma-pago-dialog";
 import { DeleteFormaPagoDialog } from "@/features/formas-pago/components/delete-forma-pago-dialog";
 import { FilterSheet } from "@/components/ui/filter-sheet";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import {
   useFormasPago,
   useCreateFormaPago,
@@ -34,8 +35,9 @@ function FormasPagoPage() {
   const [sortBy, setSortBy] = useState<string>("tipo");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
+  const debouncedSearch = useDebouncedValue(search);
   const { data: paginated, isLoading } = useFormasPago({
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     sortBy,
     sortDir,
     page,

@@ -63,14 +63,14 @@ function DashboardIndex() {
 
   const stats = [
     {
-      title: "Balance total",
-      value: summary ? formatCurrencyCOP(summary.balance) : "$0",
-      description: summary ? (summary.balance >= 0 ? "Balance positivo" : "Balance negativo") : "Tu patrimonio actual",
+      title: "Disponible",
+      value: summary ? formatCurrencyCOP(summary.disponible ?? summary.balance) : "$0",
+      description: summary ? ((summary.disponible ?? summary.balance) >= 0 ? "Saldo disponible positivo" : "Saldo disponible negativo") : "Tu saldo actual",
       icon: Wallet,
       accentClass: "border-t-chart-1",
       color: "text-chart-1",
       bg: "bg-chart-1/10",
-      valueClass: summary && summary.balance >= 0 ? "text-chart-2" : "text-chart-4",
+      valueClass: summary && (summary.disponible ?? summary.balance) >= 0 ? "text-chart-2" : "text-chart-4",
     },
     {
       title: "Ingresos del mes",

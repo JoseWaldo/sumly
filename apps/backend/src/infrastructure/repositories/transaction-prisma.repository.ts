@@ -157,6 +157,7 @@ export class TransactionPrismaRepository implements ITransactionRepository {
 
     return {
       balance: totalIncome - totalExpense,
+      disponible: 0,
       monthlyIncome,
       monthlyExpense,
       recentTransactions: recentTransactions.map((t) => this.toEntity(t)),

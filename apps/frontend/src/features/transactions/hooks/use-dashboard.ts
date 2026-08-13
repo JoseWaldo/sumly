@@ -3,6 +3,7 @@ import { apiClient } from "@/api/client";
 import type {
   DashboardSummary,
   ExpenseByCategory,
+  Movimiento,
 } from "@/features/transactions/schemas/transaction.schema";
 
 function useDashboardSummary() {
@@ -11,6 +12,13 @@ function useDashboardSummary() {
     queryFn: async () => {
       return apiClient<DashboardSummary>("/api/v1/transactions/dashboard");
     },
+  });
+}
+
+function useMovimientos() {
+  return useQuery({
+    queryKey: ["transactions", "movimientos"],
+    queryFn: () => apiClient<Movimiento[]>("/api/v1/transactions/movimientos"),
   });
 }
 
@@ -28,4 +36,4 @@ function useExpensesByCategory(month?: number, year?: number) {
   });
 }
 
-export { useDashboardSummary, useExpensesByCategory };
+export { useDashboardSummary, useExpensesByCategory, useMovimientos };

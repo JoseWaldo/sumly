@@ -138,15 +138,25 @@ apps/
 
 | ID | Historia | Estado |
 |----|----------|--------|
-| HU-21 | Registrar deuda a favor ("me deben"): monto, persona, concepto, vencimiento | Pendiente |
-| HU-22 | Registrar deuda en contra ("yo debo"): monto, persona, concepto, vencimiento | Pendiente |
-| HU-23 | Registrar abonos/pagos parciales sobre una deuda | Pendiente |
-| HU-24 | Ver saldo pendiente (monto original - abonos) | Pendiente |
-| HU-25 | Marcar deuda como saldada | Pendiente |
-| HU-26 | Listado separado: deudas a favor vs deudas en contra | Pendiente |
+| HU-21 | Registrar deuda a favor ("me deben"): monto, persona, concepto, vencimiento | Hecho (HU-71) |
+| HU-22 | Registrar deuda en contra ("yo debo"): monto, persona, concepto, vencimiento | Hecho (HU-71) |
+| HU-23 | Registrar abonos/pagos parciales sobre una deuda | Hecho (HU-75) |
+| HU-24 | Ver saldo pendiente (monto original - abonos) | Hecho (HU-75) |
+| HU-25 | Marcar deuda como saldada | Hecho (HU-78) |
+| HU-26 | Listado separado: deudas a favor vs deudas en contra | Hecho (HU-73) |
 | HU-27 | Recordatorio de vencimiento por correo electrónico | Pendiente |
+| HU-71 | Registrar deudas ME_DEBEN/YO_DEBO (texto libre o amigos, grupal ≤10, auto_confirmar) + movimientos NEUTRAL | Hecho |
+| HU-72 | Deuda espejo automática entre amigos (snapshot, inmutabilidad, cascada, independencia de la amistad) | Hecho |
+| HU-73 | Listado separado a favor/en contra, paginado y filtrable | Hecho |
+| HU-74 | Dashboard de deudas (a favor, en contra, próximas a vencer) + saldo disponible en dashboard principal | Hecho |
+| HU-75 | Abonos parciales idempotentes con forma de pago y comprobante opcional | Hecho |
+| HU-76 | Confirmar/rechazar abonos, auto-confirmación y resolución de disputas | Hecho |
+| HU-77 | Cancelar (con reversa) y perdonar deuda | Hecho |
+| HU-78 | Movimientos NEUTRAL vinculados (tbl_movimiento) y saldo disponible | Hecho |
+| HU-79 | Historial de eventos por deuda (trazabilidad) | Hecho |
+| HU-80 | Estado VENCIDA automático (lazy en SP + cron futuro) | Hecho |
 
-> Las deudas no se incluyen en los reportes/gráficos generales de gastos e ingresos, para no distorsionar esas métricas.
+> Las deudas abiertas no generan transacciones en los reportes de gastos/ingresos. Se manejan con movimientos NEUTRAL (tbl_movimiento) que solo afectan el saldo disponible. Las transacciones REAL (tbl_transaction) solo se usan para ingresos/gastos normales. El saldo disponible = balance(tbl_transaction) + neto NEUTRAL(tbl_movimiento).
 
 ### 11. Recordatorios de pagos/facturas
 
@@ -210,6 +220,7 @@ Todas las rutas bajo `/api/v1`, autenticadas (excepto health y auth). Estructura
 | Formas de pago | `GET/POST /formas-pago`, `GET/PATCH/DELETE /formas-pago/:id`, `GET /formas-pago/:id/reveal` |
 | Entidades financieras | `GET/POST /entidades-financieras`, `GET/PATCH/DELETE /entidades-financieras/:id` |
 | Files | `GET /files`, `POST /files/upload`, `GET /files/:id/view`, `GET /files/:id/download` |
+| Deudas | `GET/POST /deudas`, `GET /deudas/dashboard`, `GET /deudas/:id`, `GET /deudas/:id/eventos`, `POST /deudas/:id/cancelar`, `POST /deudas/:id/perdonar`, `POST /deudas/:id/abonos`, `POST /deudas/:id/abonos/:abonoId/confirmar`, `POST /deudas/:id/abonos/:abonoId/rechazar`, `POST /deudas/:id/disputa`, `DELETE /deudas/:id` |
 
 ---
 

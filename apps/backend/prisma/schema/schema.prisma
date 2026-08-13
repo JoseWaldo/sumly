@@ -28,6 +28,10 @@ model User {
   friendshipsAsRequester Friendship[]   @relation("FriendshipRequester")
   friendshipsAsAddressee Friendship[]   @relation("FriendshipAddressee")
   blockedFriendships  Friendship[]      @relation("FriendshipBlocker")
+  deudasGrupos        DeudaGrupo[]
+  deudasComoAcreedor  Deuda[]          @relation("DeudaAcreedor")
+  deudasComoDeudor    Deuda[]          @relation("DeudaDeudor")
+  movimientos         Movimiento[]
 
   @@map("tbl_user")
 }
@@ -78,6 +82,7 @@ model FileRecord {
   s3Key        String   @map("s3_key")
   userId       String   @map("user_id")
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  abonosComprobante DeudaAbono[]
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -213,6 +218,7 @@ model FormaPago {
   user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   subscriptions       Subscription[]
   transactions        Transaction[]
+  abonosDeuda         DeudaAbono[]
   createdAt           DateTime            @default(now()) @map("created_at")
   updatedAt           DateTime            @updatedAt @map("updated_at")
 
@@ -224,6 +230,44 @@ enum FriendshipStatus {
   ACCEPTED
   REJECTED
   BLOCKED
+}
+
+enum DeudaDireccion {
+  ME_DEBEN
+  YO_DEBO
+}
+
+enum DeudaEstado {
+  PENDIENTE
+  ESPERANDO_CONFIRMACION
+  PAGADA
+  DISPUTADA
+  VENCIDA
+  CANCELADA
+  PERDONADA
+}
+
+enum DeudaAbonoEstado {
+  PENDIENTE_CONFIRMACION
+  CONFIRMADO
+  RECHAZADO
+}
+
+enum MovimientoTipo {
+  ENTRADA
+  SALIDA
+}
+
+enum MovimientoNaturaleza {
+  REAL
+  NEUTRAL
+}
+
+enum MovimientoOrigenTipo {
+  MANUAL
+  DEUDA
+  AHORRO
+  SUSCRIPCION
 }
 
 model Friendship {
@@ -241,4 +285,101 @@ model Friendship {
   updatedAt      DateTime          @updatedAt @map("updated_at")
 
   @@map("tbl_friendship")
+}
+
+model DeudaGrupo {
+  id              String          @id @default(cuid())
+  autorId         String          @map("autor_id")
+  autor           User            @relation(fields: [autorId], references: [id], onDelete: Restrict)
+  direccion       DeudaDireccion
+  descripcion     String
+  montoBase       Decimal         @db.Decimal(10, 2) @map("monto_base")
+  fechaVencimiento DateTime       @map("fecha_vencimiento") @db.Date
+  autoConfirmar   Boolean         @default(true) @map("auto_confirmar")
+  deudas          Deuda[]
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  @@map("tbl_deuda_grupo")
+}
+
+model Deuda {
+  id                          String          @id @default(cuid())
+  grupoId                     String?         @map("grupo_id")
+  grupo                       DeudaGrupo?     @relation(fields: [grupoId], references: [id], onDelete: Restrict)
+  acreedorId                  String          @map("acreedor_user_id")
+  acreedor                    User            @relation("DeudaAcreedor", fields: [acreedorId], references: [id], onDelete: Restrict)
+  deudorId                    String?         @map("deudor_user_id")
+  deudor                      User?           @relation("DeudaDeudor", fields: [deudorId], references: [id], onDelete: Restrict)
+  deudorNombreLibre           String?         @map("deudor_nombre_libre")
+  contraparteSnapshotNombre   String          @map("contraparte_snapshot_nombre")
+  contraparteSnapshotAvatar   String?         @map("contraparte_snapshot_avatar")
+  espejoDeId                  String?         @unique @map("espejo_de_id")
+  espejoDe                    Deuda?          @relation("DeudaEspejo", fields: [espejoDeId], references: [id], onDelete: Restrict)
+  espejos                     Deuda[]         @relation("DeudaEspejo")
+  monto                       Decimal         @db.Decimal(10, 2)
+  saldoPendiente              Decimal         @db.Decimal(10, 2) @map("saldo_pendiente")
+  estado                      DeudaEstado     @default(PENDIENTE)
+  autoConfirmar               Boolean         @default(true) @map("auto_confirmar")
+  abonos                      DeudaAbono[]
+  eventos                     DeudaEvento[]
+  createdAt                   DateTime        @default(now()) @map("created_at")
+  updatedAt                   DateTime        @updatedAt @map("updated_at")
+
+  @@index([acreedorId])
+  @@index([deudorId])
+  @@map("tbl_deuda")
+}
+
+model DeudaAbono {
+  id                String              @id @default(cuid())
+  deudaId           String              @map("deuda_id")
+  deuda             Deuda               @relation(fields: [deudaId], references: [id], onDelete: Restrict)
+  monto             Decimal             @db.Decimal(10, 2)
+  estado            DeudaAbonoEstado    @default(PENDIENTE_CONFIRMACION)
+  formaPagoId       String              @map("forma_pago_id")
+  formaPago         FormaPago           @relation(fields: [formaPagoId], references: [id], onDelete: Restrict)
+  comprobanteFileId String?             @map("comprobante_file_id")
+  comprobanteFile   FileRecord?         @relation(fields: [comprobanteFileId], references: [id], onDelete: SetNull)
+  aiReviewStatus    String?             @map("ai_review_status")
+  aiReviewNota      String?             @map("ai_review_nota")
+  idempotencyKey    String              @unique @map("idempotency_key")
+  confirmedAt       DateTime?           @map("confirmed_at")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  @@map("tbl_deuda_abono")
+}
+
+model DeudaEvento {
+  id          String   @id @default(cuid())
+  deudaId     String   @map("deuda_id")
+  deuda       Deuda    @relation(fields: [deudaId], references: [id], onDelete: Cascade)
+  tipoEvento  String   @map("tipo_evento")
+  actorUserId String?  @map("actor_user_id")
+  metadata    Json
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([deudaId, createdAt])
+  @@map("tbl_deuda_evento")
+}
+
+model Movimiento {
+  id            String                @id @default(cuid())
+  userId        String                @map("usuario_id")
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Restrict)
+  tipo          MovimientoTipo
+  naturaleza    MovimientoNaturaleza
+  monto         Decimal               @db.Decimal(10, 2)
+  origenTipo    MovimientoOrigenTipo  @map("origen_tipo")
+  origenId      String?               @map("origen_id")
+  reversaDeId   String?               @unique @map("reversa_de_id")
+  reversaDe     Movimiento?           @relation("MovimientoReversa", fields: [reversaDeId], references: [id], onDelete: SetNull)
+  reversas      Movimiento[]          @relation("MovimientoReversa")
+  editable      Boolean               @default(false)
+  createdAt     DateTime              @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([origenTipo, origenId])
+  @@map("tbl_movimiento")
 }

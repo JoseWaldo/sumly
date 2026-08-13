@@ -21,6 +21,7 @@ import {
   useUpdateTransaction,
   useDeleteTransaction,
 } from "@/features/transactions/hooks/use-transactions";
+import { useMovimientos } from "@/features/transactions/hooks/use-dashboard";
 import type {
   Transaction,
   TransactionFormInput,
@@ -65,6 +66,7 @@ function HistorialPage() {
   const { toast } = useToast();
 
   const { data: formasPagoData } = useFormasPago({ page: 1, limit: 100 });
+  const { data: movimientos } = useMovimientos();
 
   const sortOptions: { value: string; label: string }[] = useMemo(() => [
     { value: "date", label: "Fecha" },
@@ -487,6 +489,36 @@ function HistorialPage() {
           </button>
         </FilterSheet.Footer>
       </FilterSheet>
+
+      {movimientos && movimientos.length > 0 && (
+        <Card className="mt-4">
+          <CardHeader className="pb-2">
+            <h2 className="text-sm font-medium text-muted-foreground">
+              Movimientos de deudas
+            </h2>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-64 overflow-y-auto scrollbar-thin">
+              {movimientos.map((m) => (
+                <div key={m.id} className="flex items-center justify-between rounded-lg border border-border p-2 text-sm">
+                  <div>
+                    <span className={m.tipo === "ENTRADA" ? "text-emerald-500" : "text-rose-500"}>
+                      {m.tipo === "ENTRADA" ? "+" : "-"} ${Number(m.monto).toLocaleString("es-CO")}
+                    </span>
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {m.origenTipo === "DEUDA" ? "Deuda" : m.origenTipo}
+                      {m.reversaDeId ? " (reversa)" : ""}
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(m.createdAt).toLocaleDateString("es-CO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

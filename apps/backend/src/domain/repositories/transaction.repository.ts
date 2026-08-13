@@ -36,6 +36,7 @@ export interface UpdateTransactionInput {
 
 export interface DashboardSummary {
   balance: number;
+  disponible: number;
   monthlyIncome: number;
   monthlyExpense: number;
   recentTransactions: TransactionEntity[];

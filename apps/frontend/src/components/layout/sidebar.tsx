@@ -1,5 +1,5 @@
 import { Link, useLocation, useRouter } from "@tanstack/react-router";
-import { LayoutDashboard, History, Building2, CreditCard, Repeat, Tags, LogOut, ChevronLeft, ChevronRight, X, UserRound, Users } from "lucide-react";
+import { LayoutDashboard, History, Building2, CreditCard, Repeat, Tags, LogOut, ChevronLeft, ChevronRight, X, UserRound, Users, HandCoins } from "lucide-react";
 
 import { AppLogo } from "@/components/shared/app-logo";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -30,6 +30,11 @@ const navItems = [
     to: "/dashboard/amigos",
     icon: Users,
     label: "Amigos",
+  },
+  {
+    to: "/dashboard/deudas",
+    icon: HandCoins,
+    label: "Deudas",
   },
   {
     to: "/dashboard/entidades-financieras",

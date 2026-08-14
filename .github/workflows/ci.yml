@@ -139,9 +139,8 @@ jobs:
             POSTGRES_MIGRATION_PASSWORD=${{ secrets.POSTGRES_MIGRATION_PASSWORD }}
             BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
             BETTER_AUTH_URL=${{ secrets.BETTER_AUTH_URL }}
-            SMTP_USER=${{ secrets.SMTP_USER }}
-            SMTP_PASS=${{ secrets.SMTP_PASS }}
-            SMTP_FROM=${{ secrets.SMTP_FROM }}
+            SES_ACCESS_KEY_ID=${{ secrets.SES_ACCESS_KEY_ID }}
+            SES_SECRET_ACCESS_KEY=${{ secrets.SES_SECRET_ACCESS_KEY }}
             ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}
             EOF
 
@@ -189,9 +188,8 @@ jobs:
             POSTGRES_MIGRATION_PASSWORD=${{ secrets.POSTGRES_MIGRATION_PASSWORD }}
             BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
             BETTER_AUTH_URL=${{ secrets.BETTER_AUTH_URL }}
-            SMTP_USER=${{ secrets.SMTP_USER }}
-            SMTP_PASS=${{ secrets.SMTP_PASS }}
-            SMTP_FROM=${{ secrets.SMTP_FROM }}
+            SES_ACCESS_KEY_ID=${{ secrets.SES_ACCESS_KEY_ID }}
+            SES_SECRET_ACCESS_KEY=${{ secrets.SES_SECRET_ACCESS_KEY }}
             ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}
             EOF
 

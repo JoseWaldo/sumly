@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Plus, Repeat, Search, SlidersHorizontal, FilterX } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { Input } from "@/components/ui/input";
 import { FilterSheet } from "@/components/ui/filter-sheet";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { SubscriptionCard } from "@/features/subscriptions/components/subscription-card";
 import { SubscriptionCardSkeleton } from "@/features/subscriptions/components/subscription-card-skeleton";
 import { SubscriptionDialog } from "@/features/subscriptions/components/subscription-dialog";
@@ -47,7 +48,6 @@ const SORT_OPTIONS = [
 
 function SuscripcionesPage() {
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "PAUSED" | "CANCELLED" | undefined>(undefined);
   const [tagFilter, setTagFilter] = useState<string | undefined>(undefined);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -59,6 +59,7 @@ function SuscripcionesPage() {
   const [deletingSubscription, setDeletingSubscription] = useState<Subscription | null>(null);
   const [detailFormaPago, setDetailFormaPago] = useState<SubscriptionFormaPago | null>(null);
 
+  const debouncedSearch = useDebouncedValue(search);
   const { data, isLoading } = useSubscriptions({
     status: statusFilter,
     tagId: tagFilter,
@@ -75,13 +76,6 @@ function SuscripcionesPage() {
   const deleteSubscription = useDeleteSubscription();
   const reportPayment = useReportPayment();
   const { toast } = useToast();
-
-  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-    clearTimeout(searchTimeoutRef.current);
-    searchTimeoutRef.current = setTimeout(() => setDebouncedSearch(value), 300);
-  };
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -168,7 +162,7 @@ function SuscripcionesPage() {
           <Input
             placeholder="Buscar suscripción..."
             value={search}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             className="pl-8"
           />
         </div>

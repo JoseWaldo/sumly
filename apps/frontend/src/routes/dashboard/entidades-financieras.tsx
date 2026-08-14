@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { FilterSheet } from "@/components/ui/filter-sheet";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { EntidadesFinancierasTable } from "@/features/formas-pago/components/entidades-financieras-table";
 import { EntidadesFinancierasTableSkeleton } from "@/features/formas-pago/components/entidades-financieras-table-skeleton";
 import { EntidadFinancieraForm } from "@/features/formas-pago/components/entidad-financiera-form";
@@ -38,8 +39,9 @@ function EntidadesFinancierasPage() {
   const [editingEntidad, setEditingEntidad] = useState<EntidadFinanciera | null>(null);
   const [deletingEntidad, setDeletingEntidad] = useState<EntidadFinanciera | null>(null);
 
+  const debouncedSearch = useDebouncedValue(search);
   const { data: paginated, isLoading } = useEntidadesFinancieras({
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     sortBy,
     sortDir,
   });

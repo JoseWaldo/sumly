@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { FilterSheet } from "@/components/ui/filter-sheet";
 import { Plus, Search, SlidersHorizontal, FilterX } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useToast } from "@/components/ui/toast";
 import { useQueryClient } from "@tanstack/react-query";
 import type { CreateDeudaInput, Debt, DebtEstado } from "@/features/debts/schemas/debt.schema";
@@ -40,7 +41,8 @@ function DeudasPage() {
   const [deleteDebt, setDeleteDebt] = useState<Debt | null>(null);
 
   // Queries
-  const { data, isLoading } = useDebts({ direccion, estado, search, sortBy, sortDir, page, limit: 12 });
+  const debouncedSearch = useDebouncedValue(search);
+  const { data, isLoading } = useDebts({ direccion, estado, search: debouncedSearch, sortBy, sortDir, page, limit: 12 });
   const { data: dashboard } = useDebtDashboard();
   const { data: detail } = useDebtDetail(detailId);
   const { data: eventos } = useDebtEventos(detailId);
@@ -186,12 +188,12 @@ function DeudasPage() {
       />
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg border border-border p-1 bg-muted/30">
+      <div className="flex gap-1 rounded-lg border border-border p-1 bg-muted/30 w-fit">
         {(["ME_DEBEN", "YO_DEBO"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => { setDireccion(tab); setPage(1); }}
-            className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               direccion === tab
                 ? "bg-card text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -206,7 +208,7 @@ function DeudasPage() {
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
-            <div className="relative flex-1">
+            <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"

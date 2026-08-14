@@ -185,7 +185,7 @@ const result = rows[0]?.sp_list_tbl_transactions;
 | ORM | Prisma v7 + PostgreSQL 16 |
 | Auth | Better Auth v1 (email + password) |
 | Validación | Zod v3 (env) / Zod v3 (DTOs) |
-| Email | Nodemailer + SMTP |
+| Email | AWS SES (`@aws-sdk/client-sesv2`) |
 | Encriptación | AES-256-GCM (números de tarjeta) |
 | Frontend | React 19 + Vite + TanStack Router/Query/Table + Jotai + Tailwind v4 |
 | Monorepo | Bun + Turbo |

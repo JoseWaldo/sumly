@@ -42,7 +42,7 @@ apps/
 
 - Se valida que el correo no esté duplicado.
 - Autenticación con Better Auth (estrategia email + contraseña).
-- Correo de bienvenida vía SMTP (Nodemailer) al crear cuenta.
+- Correo de bienvenida vía AWS SES al crear cuenta.
 - Pendiente: opción de "recuperar contraseña".
 
 ### 2. Perfil de usuario
@@ -167,7 +167,7 @@ apps/
 | HU-19 | Marcar pago como realizado | Pendiente |
 | HU-20 | Listado de pagos pendientes | Pendiente |
 
-> La infraestructura de envío de correos (SMTP/Nodemailer) ya existe. Falta el scheduler/cron y los modelos de datos.
+> La infraestructura de envío de correos (AWS SES) ya existe. Falta el scheduler/cron y los modelos de datos.
 
 ### 12. PWA
 
@@ -244,7 +244,7 @@ Todas las rutas bajo `/api/v1`, autenticadas (excepto health y auth). Estructura
 - Better Auth v1 + Prisma adapter (email/password)
 - Prisma v7 + PostgreSQL 16
 - Zod v3 (validación de entorno y DTOs)
-- Nodemailer (SMTP)
+- AWS SES (`@aws-sdk/client-sesv2`) — correos transaccionales
 - AES-256-GCM (encriptacion de numeros de tarjeta)
 - `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner` (AWS S3)
 

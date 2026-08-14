@@ -31,10 +31,10 @@ export class S3StorageService implements IStorageService {
 
   constructor() {
     this.client = new S3Client({
-      region: env.S3_REGION,
+      region: env.AWS_REGION,
       credentials: {
-        accessKeyId: env.S3_ACCESS_KEY,
-        secretAccessKey: env.S3_SECRET_KEY,
+        accessKeyId: env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
       },
       ...(env.S3_ENDPOINT ? { endpoint: env.S3_ENDPOINT, forcePathStyle: true } : {}),
     });

@@ -4,10 +4,10 @@ import { env } from "@/config/env";
 import type { EmailService } from "./email.service";
 
 const client = new SESv2Client({
-  region: env.SES_REGION,
+  region: env.AWS_REGION,
   credentials: {
-    accessKeyId: env.SES_ACCESS_KEY_ID,
-    secretAccessKey: env.SES_SECRET_ACCESS_KEY,
+    accessKeyId: env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
   },
 });
 

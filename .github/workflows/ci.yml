@@ -139,8 +139,9 @@ jobs:
             POSTGRES_MIGRATION_PASSWORD=${{ secrets.POSTGRES_MIGRATION_PASSWORD }}
             BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
             BETTER_AUTH_URL=${{ secrets.BETTER_AUTH_URL }}
-            SES_ACCESS_KEY_ID=${{ secrets.SES_ACCESS_KEY_ID }}
-            SES_SECRET_ACCESS_KEY=${{ secrets.SES_SECRET_ACCESS_KEY }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            S3_BUCKET=${{ secrets.S3_BUCKET }}
             ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}
             EOF
 
@@ -188,8 +189,9 @@ jobs:
             POSTGRES_MIGRATION_PASSWORD=${{ secrets.POSTGRES_MIGRATION_PASSWORD }}
             BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
             BETTER_AUTH_URL=${{ secrets.BETTER_AUTH_URL }}
-            SES_ACCESS_KEY_ID=${{ secrets.SES_ACCESS_KEY_ID }}
-            SES_SECRET_ACCESS_KEY=${{ secrets.SES_SECRET_ACCESS_KEY }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            S3_BUCKET=${{ secrets.S3_BUCKET }}
             ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}
             EOF
 

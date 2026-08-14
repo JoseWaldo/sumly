@@ -22,7 +22,11 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
-          await sendWelcomeEmail(user.email, user.name);
+          try {
+            await sendWelcomeEmail(user.email, user.name);
+          } catch (err) {
+            console.error("Failed to send welcome email to", user.email, err);
+          }
         },
       },
     },
